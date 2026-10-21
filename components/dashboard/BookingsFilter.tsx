@@ -3,12 +3,15 @@
 import { useSearchParams } from 'next/navigation'
 import { useRouter, usePathname } from '@/i18n/navigation'
 import { useCallback, useTransition } from 'react'
+import { useTranslations } from 'next-intl'
 
 export default function BookingsFilter() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
+  const t = useTranslations('BookingsFilter')
+  const tStatus = useTranslations('BookingStatus')
 
   const q = searchParams.get('q') ?? ''
   const status = searchParams.get('status') ?? ''
@@ -45,7 +48,7 @@ export default function BookingsFilter() {
           type="text"
           value={q}
           onChange={(e) => update('q', e.target.value)}
-          placeholder="Hae nimellä tai sähköpostilla..."
+          placeholder={t('searchPlaceholder')}
           className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate
                      placeholder-mocha/50 focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
         />
@@ -58,10 +61,10 @@ export default function BookingsFilter() {
         className="px-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate
                    focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
       >
-        <option value="">Kaikki tilat</option>
-        <option value="confirmed">Vahvistettu</option>
-        <option value="cancelled">Peruutettu</option>
-        <option value="completed">Toteutunut</option>
+        <option value="">{tStatus('all')}</option>
+        <option value="confirmed">{tStatus('confirmed')}</option>
+        <option value="cancelled">{tStatus('cancelled')}</option>
+        <option value="completed">{tStatus('completed')}</option>
       </select>
 
       {/* Tyhjennä-nappi */}
@@ -74,12 +77,12 @@ export default function BookingsFilter() {
           className="px-3 py-2 text-sm text-mocha hover:text-chocolate hover:bg-cream
                      rounded-lg transition-colors disabled:opacity-50"
         >
-          Tyhjennä
+          {t('clear')}
         </button>
       )}
 
       {isPending && (
-        <span className="text-xs text-mocha/70">Haetaan...</span>
+        <span className="text-xs text-mocha/70">{t('searching')}</span>
       )}
     </div>
   )

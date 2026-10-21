@@ -8,7 +8,8 @@ import {
   sendBookingRescheduleToCustomer,
   sendBookingUpdateToCustomer,
 } from '@/lib/email'
-import { formatDateTimeHelsinki } from '@/lib/dates'
+import { getPathname } from '@/i18n/navigation'
+import { getTranslations } from 'next-intl/server'
 import { supabaseErr, resendErr } from '@/lib/log-error'
 import { revalidatePath } from 'next/cache'
 
@@ -34,7 +35,7 @@ export async function cancelBookingAction(formData: FormData): Promise<void> {
   const admin = createAdminClient()
   const { data: booking } = await admin
     .from('bookings')
-    .select('customer_name, customer_email, starts_at, service_id, services(name)')
+    .select('customer_name, customer_email, starts_at, service_id, locale, services(name)')
     .eq('id', bookingId)
     .eq('business_id', business.id)
     .eq('status', 'confirmed')
@@ -56,13 +57,11 @@ export async function cancelBookingAction(formData: FormData): Promise<void> {
 
   revalidatePath('/dashboard/bookings')
 
-  const startsAt = new Date(booking.starts_at)
   const serviceName = Array.isArray(booking.services)
     ? (booking.services[0]?.name ?? 'Palvelu')
     : ((booking.services as { name: string } | null)?.name ?? 'Palvelu')
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://kauneusai.fi'
-  const bookingUrl = `${baseUrl}/${business.slug}`
 
   // Sähköpostit fire-and-forget — ei estä paluuta
   Promise.all([
@@ -71,20 +70,15 @@ export async function cancelBookingAction(formData: FormData): Promise<void> {
       customerName: booking.customer_name,
       customerEmail: booking.customer_email,
       serviceName,
-      date: startsAt.toLocaleDateString('fi-FI', {
-        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-        timeZone: 'Europe/Helsinki',
-      }),
-      time: startsAt.toLocaleTimeString('fi-FI', {
-        hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Helsinki',
-      }),
+      startsAt: booking.starts_at,
       businessName: business.name,
+      locale: booking.locale,
     }),
 
     // 2) Ilmoitus jonotuslistalle — haetaan kaikki jonottajat tälle palvelulle
     admin
       .from('waitlist')
-      .select('customer_name, customer_email')
+      .select('customer_name, customer_email, locale')
       .eq('business_id', business.id)
       .eq('service_id', booking.service_id)
       .then(({ data: waitlist }) => {
@@ -96,7 +90,9 @@ export async function cancelBookingAction(formData: FormData): Promise<void> {
               customerEmail: entry.customer_email,
               serviceName,
               businessName: business.name,
-              bookingUrl,
+              // Varauslinkki jonottajan omalla kielellä (fi: /slug, en: /en/slug)
+              bookingUrl: `${baseUrl}${getPathname({ href: `/${business.slug}`, locale: entry.locale })}`,
+              locale: entry.locale,
             })
           )
         )
@@ -112,18 +108,19 @@ export async function rescheduleBookingAction(
   _prevState: string | null,
   formData: FormData
 ): Promise<string | null> {
+  const t = await getTranslations('Errors')
   const bookingId = (formData.get('booking_id') as string)?.trim()
   const newStartsAtRaw = (formData.get('starts_at') as string)?.trim()
 
-  if (!bookingId) return 'Varauksen ID puuttuu.'
-  if (!newStartsAtRaw) return 'Uusi ajankohta puuttuu.'
+  if (!bookingId) return t('bookingIdMissing')
+  if (!newStartsAtRaw) return t('newTimeMissing')
 
   const newStartsAt = new Date(newStartsAtRaw)
-  if (isNaN(newStartsAt.getTime())) return 'Virheellinen ajankohta.'
+  if (isNaN(newStartsAt.getTime())) return t('invalidTime')
 
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return 'Kirjaudu ensin sisään.'
+  if (!user) return t('loginRequired')
 
   const { data: business } = await supabase
     .from('businesses')
@@ -131,19 +128,19 @@ export async function rescheduleBookingAction(
     .eq('user_id', user.id)
     .single()
 
-  if (!business) return 'Yritystietoja ei löydy.'
+  if (!business) return t('businessNotFound')
 
   // Haetaan varauksen ja palvelun tiedot ennen päivitystä (sähköpostia ja kestoa varten)
   const admin = createAdminClient()
   const { data: booking } = await admin
     .from('bookings')
-    .select('customer_name, customer_email, starts_at, service_id, services(name, duration_minutes)')
+    .select('customer_name, customer_email, starts_at, service_id, locale, services(name, duration_minutes)')
     .eq('id', bookingId)
     .eq('business_id', business.id)
     .eq('status', 'confirmed')
     .single()
 
-  if (!booking) return 'Varausta ei löydy tai sitä ei voi siirtää.'
+  if (!booking) return t('bookingNotReschedulable')
 
   const serviceName = Array.isArray(booking.services)
     ? (booking.services[0]?.name ?? 'Palvelu')
@@ -153,7 +150,7 @@ export async function rescheduleBookingAction(
     ? booking.services[0]?.duration_minutes
     : (booking.services as { duration_minutes: number } | null)?.duration_minutes
 
-  if (!durationMinutes) return 'Palvelun kestoa ei löydy.'
+  if (!durationMinutes) return t('durationNotFound')
 
   const newEndsAt = new Date(newStartsAt.getTime() + durationMinutes * 60 * 1000)
 
@@ -170,7 +167,7 @@ export async function rescheduleBookingAction(
     .limit(1)
 
   if (conflicting && conflicting.length > 0) {
-    return 'Valittu aika on jo varattuna. Valitse toinen aika.'
+    return t('slotTaken')
   }
 
   // Päivitetään ajankohta — RLS varmistaa omistajuuden
@@ -182,7 +179,7 @@ export async function rescheduleBookingAction(
 
   if (error) {
     console.error('Varauksen siirto epäonnistui:', supabaseErr(error))
-    return 'Varauksen siirto epäonnistui. Yritä uudelleen.'
+    return t('rescheduleFailed')
   }
 
   revalidatePath('/dashboard/bookings')
@@ -193,9 +190,10 @@ export async function rescheduleBookingAction(
       customerName: booking.customer_name,
       customerEmail: booking.customer_email,
       serviceName,
-      oldDateTime: formatDateTimeHelsinki(booking.starts_at, 'long'),
-      newDateTime: formatDateTimeHelsinki(newStartsAt.toISOString(), 'long'),
+      oldStartsAt: booking.starts_at,
+      newStartsAt: newStartsAt.toISOString(),
       businessName: business.name,
+      locale: booking.locale,
     }),
   ]).catch((err) => {
     console.error('Sähköpostilähetys epäonnistui (varaus siirretty):', resendErr(err))
@@ -210,20 +208,21 @@ export async function updateBookingDetailsAction(
   _prevState: string | null,
   formData: FormData
 ): Promise<string | null> {
+  const t = await getTranslations('Errors')
   const bookingId = (formData.get('booking_id') as string)?.trim()
   const customer_name = (formData.get('customer_name') as string)?.trim()
   const customer_email = (formData.get('customer_email') as string)?.trim()
   const customer_phone = (formData.get('customer_phone') as string)?.trim() || null
   const customer_notes = (formData.get('customer_notes') as string)?.trim() || null
 
-  if (!bookingId) return 'Varauksen ID puuttuu.'
-  if (!customer_name) return 'Nimi on pakollinen.'
-  if (!customer_email) return 'Sähköposti on pakollinen.'
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer_email)) return 'Virheellinen sähköpostiosoite.'
+  if (!bookingId) return t('bookingIdMissing')
+  if (!customer_name) return t('nameRequired')
+  if (!customer_email) return t('emailRequired')
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer_email)) return t('invalidEmail')
 
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return 'Kirjaudu ensin sisään.'
+  if (!user) return t('loginRequired')
 
   const { data: business } = await supabase
     .from('businesses')
@@ -231,19 +230,19 @@ export async function updateBookingDetailsAction(
     .eq('user_id', user.id)
     .single()
 
-  if (!business) return 'Yritystietoja ei löydy.'
+  if (!business) return t('businessNotFound')
 
   // Haetaan varauksen ja palvelun tiedot ennen päivitystä (sähköpostia varten)
   const admin = createAdminClient()
   const { data: booking } = await admin
     .from('bookings')
-    .select('starts_at, services(name)')
+    .select('starts_at, locale, services(name)')
     .eq('id', bookingId)
     .eq('business_id', business.id)
     .eq('status', 'confirmed')
     .single()
 
-  if (!booking) return 'Varausta ei löydy tai sitä ei voi muokata.'
+  if (!booking) return t('bookingNotEditable')
 
   const serviceName = Array.isArray(booking.services)
     ? (booking.services[0]?.name ?? 'Palvelu')
@@ -258,7 +257,7 @@ export async function updateBookingDetailsAction(
 
   if (error) {
     console.error('Varauksen tietojen tallennus epäonnistui:', supabaseErr(error))
-    return 'Varauksen tietojen tallennus epäonnistui. Yritä uudelleen.'
+    return t('bookingSaveFailed')
   }
 
   revalidatePath('/dashboard/bookings')
@@ -269,8 +268,9 @@ export async function updateBookingDetailsAction(
       customerName: customer_name,
       customerEmail: customer_email,
       serviceName,
-      dateTime: formatDateTimeHelsinki(booking.starts_at, 'long'),
+      startsAt: booking.starts_at,
       businessName: business.name,
+      locale: booking.locale,
     }),
   ]).catch((err) => {
     console.error('Sähköpostilähetys epäonnistui (varaus päivitetty):', resendErr(err))

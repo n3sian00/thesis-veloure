@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { formatDateTimeHelsinki } from '@/lib/dates'
 
 interface Props {
@@ -22,6 +22,8 @@ export default function BookingForm({
   onSuccess,
 }: Props) {
   const locale = useLocale()
+  const t = useTranslations('BookingForm')
+  const tCommon = useTranslations('Common')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -50,16 +52,21 @@ export default function BookingForm({
         }),
       })
 
-      const data = await res.json()
-
+      // API on lokalisoimaton, joten virheteksti valitaan tilakoodin perusteella
       if (!res.ok) {
-        setVirhe(data.error ?? 'Varaus epäonnistui. Yritä uudelleen.')
+        setVirhe(
+          res.status === 409
+            ? t('errorSlotTaken')
+            : res.status === 404
+              ? t('errorServiceNotFound')
+              : t('errorGeneric')
+        )
         return
       }
 
       onSuccess()
     } catch {
-      setVirhe('Yhteysvirhe. Tarkista verkkoyhteytesi ja yritä uudelleen.')
+      setVirhe(t('errorNetwork'))
     } finally {
       setIsSubmitting(false)
     }
@@ -70,17 +77,17 @@ export default function BookingForm({
       {/* Yhteenveto valitusta ajasta */}
       <div className="mb-4">
         <p className="text-xs font-medium text-mocha uppercase tracking-wide mb-1">
-          Varauksen tiedot
+          {t('bookingDetails')}
         </p>
         <p className="text-sm font-semibold text-chocolate">{serviceName}</p>
-        <p className="text-xs text-mocha mt-0.5">{formatDateTimeHelsinki(startsAt, 'long')}</p>
+        <p className="text-xs text-mocha mt-0.5">{formatDateTimeHelsinki(startsAt, 'long', locale)}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-3">
         {/* Nimi */}
         <div>
           <label htmlFor="bf-name" className="block text-xs font-medium text-mocha mb-1">
-            Nimi
+            {t('name')}
           </label>
           <input
             id="bf-name"
@@ -88,7 +95,7 @@ export default function BookingForm({
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Etunimi Sukunimi"
+            placeholder={t('namePlaceholder')}
             className="w-full px-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate placeholder-mocha/50
                        focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
           />
@@ -97,7 +104,7 @@ export default function BookingForm({
         {/* Sähköposti */}
         <div>
           <label htmlFor="bf-email" className="block text-xs font-medium text-mocha mb-1">
-            Sähköposti
+            {t('email')}
           </label>
           <input
             id="bf-email"
@@ -105,7 +112,7 @@ export default function BookingForm({
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="sinä@esimerkki.fi"
+            placeholder={t('emailPlaceholder')}
             className="w-full px-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate placeholder-mocha/50
                        focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
           />
@@ -114,7 +121,7 @@ export default function BookingForm({
         {/* Puhelinnumero */}
         <div>
           <label htmlFor="bf-phone" className="block text-xs font-medium text-mocha mb-1">
-            Puhelinnumero <span className="text-mocha/60">(valinnainen)</span>
+            {t('phone')} <span className="text-mocha/60">{tCommon('optional')}</span>
           </label>
           <input
             id="bf-phone"
@@ -130,14 +137,14 @@ export default function BookingForm({
         {/* Lisätiedot */}
         <div>
           <label htmlFor="bf-notes" className="block text-xs font-medium text-mocha mb-1">
-            Lisätiedot <span className="text-mocha/60">(valinnainen)</span>
+            {t('notes')} <span className="text-mocha/60">{tCommon('optional')}</span>
           </label>
           <textarea
             id="bf-notes"
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="esim. allergiat tai toiveet"
+            placeholder={t('notesPlaceholder')}
             className="w-full px-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate placeholder-mocha/50 resize-none
                        focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
           />
@@ -156,7 +163,7 @@ export default function BookingForm({
                      focus:outline-none focus:ring-2 focus:ring-rose
                      disabled:opacity-60 disabled:cursor-not-allowed transition-all"
         >
-          {isSubmitting ? 'Vahvistetaan...' : 'Vahvista varaus'}
+          {isSubmitting ? t('submitting') : t('submit')}
         </button>
       </form>
     </div>

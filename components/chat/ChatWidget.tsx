@@ -5,7 +5,7 @@ import ChatMessage from './ChatMessage'
 import BreathingOrb from './BreathingOrb'
 import TimeSlotPicker from '../booking/TimeSlotPicker'
 import BookingForm from '../booking/BookingForm'
-import { formatDateTimeHelsinki } from '@/lib/dates'
+import { formatDateTimeHelsinki, toIntlLocale } from '@/lib/dates'
 import { useTranslations, useLocale } from 'next-intl'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 
@@ -62,8 +62,8 @@ interface Props {
 // [VARAUS:{...}] -patternia vastaava regex
 const BOOKING_TRIGGER_REGEX = /\[VARAUS:(\{[^}]+\})\]/
 
-function formatPrice(price: number) {
-  return new Intl.NumberFormat('fi-FI', {
+function formatPrice(price: number, locale: string) {
+  return new Intl.NumberFormat(toIntlLocale(locale), {
     style: 'currency',
     currency: 'EUR',
     minimumFractionDigits: 0,
@@ -72,7 +72,8 @@ function formatPrice(price: number) {
 
 // Ryhmittelee palvelut kategorian mukaan aakkosjärjestykseen — kategoriattomat "Muut"-ryhmään viimeiseksi
 function groupServicesByCategory(
-  services: Service[]
+  services: Service[],
+  otherLabel: string
 ): Array<{ label: string; services: Service[] }> {
   const groups = services.reduce((map, s) => {
     const list = map.get(s.category) ?? []
@@ -88,7 +89,7 @@ function groupServicesByCategory(
 
   const uncategorized = groups.get(null)
   if (uncategorized) {
-    categorized.push({ label: 'Muut', services: uncategorized })
+    categorized.push({ label: otherLabel, services: uncategorized })
   }
 
   return categorized
@@ -196,7 +197,7 @@ export default function ChatWidget({ business, services }: Props) {
         }
         setMessages((prev) => [
           ...prev.slice(0, -1),
-          { role: 'assistant', content: 'Pahoittelen, jokin meni pieleen. Yritä uudelleen.' },
+          { role: 'assistant', content: t('errorMessage') },
         ])
       } finally {
         setIsStreaming(false)
@@ -205,7 +206,7 @@ export default function ChatWidget({ business, services }: Props) {
 
       return () => abortController.abort()
     },
-    [messages, isStreaming, business.id, services, locale]
+    [messages, isStreaming, business.id, services, locale, t]
   )
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -230,8 +231,8 @@ export default function ChatWidget({ business, services }: Props) {
     setBookingTrigger(null)
 
     const lisatiedot = [
-      `Voit peruuttaa varauksen viimeistään ${business.cancellation_hours} tuntia ennen aikaa.`,
-      business.city ? `Sijainti: ${business.city}` : null,
+      t('cancellationPolicy', { hours: business.cancellation_hours }),
+      business.city ? t('location', { city: business.city }) : null,
       business.general_notes,
     ]
       .filter(Boolean)
@@ -241,7 +242,7 @@ export default function ChatWidget({ business, services }: Props) {
       ...prev,
       {
         role: 'assistant',
-        content: `Varauksesi on vahvistettu! Olet saanut vahvistuksen sähköpostiisi. Nähdään pian!\n\n${lisatiedot}`,
+        content: `${t('bookingConfirmedMessage')}\n\n${lisatiedot}`,
       },
     ])
   }
@@ -314,7 +315,7 @@ export default function ChatWidget({ business, services }: Props) {
                 onClick={handleDirectBack}
                 className="shrink-0 text-xs font-medium bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
               >
-                ← {directDone ? 'Sulje' : directStep === 'services' ? 'Chat' : 'Takaisin'}
+                ← {directDone ? t('close') : directStep === 'services' ? t('chat') : t('back')}
               </button>
             )}
           </div>
@@ -334,43 +335,43 @@ export default function ChatWidget({ business, services }: Props) {
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-chocolate">Varaus vahvistettu!</p>
+                <p className="font-semibold text-chocolate">{t('bookingConfirmedTitle')}</p>
                 <p className="text-sm text-mocha mt-1">
-                  Vahvistus on lähetetty sähköpostiisi. Nähdään pian!
+                  {t('confirmationSent')}
                 </p>
               </div>
               {confirmedBooking && (
                 <div className="bg-cream rounded-xl px-4 py-3 w-full max-w-xs text-left border border-card-border">
                   <p className="text-xs font-medium text-mocha uppercase tracking-wide mb-1">
-                    Varauksen tiedot
+                    {t('bookingDetails')}
                   </p>
                   <p className="text-sm font-semibold text-chocolate">{confirmedBooking.serviceName}</p>
                   <p className="text-xs text-mocha mt-0.5">
-                    {formatDateTimeHelsinki(confirmedBooking.startsAt, 'long')}
+                    {formatDateTimeHelsinki(confirmedBooking.startsAt, 'long', locale)}
                   </p>
                 </div>
               )}
               <div className="text-xs text-mocha space-y-1 max-w-xs">
                 <p>
-                  Voit peruuttaa varauksen viimeistään {business.cancellation_hours} tuntia ennen aikaa.
+                  {t('cancellationPolicy', { hours: business.cancellation_hours })}
                 </p>
-                {business.city && <p>Sijainti: {business.city}</p>}
+                {business.city && <p>{t('location', { city: business.city })}</p>}
                 {business.general_notes && <p>{business.general_notes}</p>}
               </div>
               <button
                 onClick={() => setDirectMode(false)}
                 className="text-sm text-rose-deep hover:underline"
               >
-                Palaa chattiin
+                {t('backToChat')}
               </button>
             </div>
 
           ) : directStep === 'services' ? (
             /* Vaihe 1: Palvelulista — ryhmitelty kategorioittain */
             <>
-              <p className="text-sm font-medium text-chocolate">Valitse palvelu</p>
+              <p className="text-sm font-medium text-chocolate">{t('chooseService')}</p>
               <div className="space-y-4">
-                {groupServicesByCategory(services).map((group) => (
+                {groupServicesByCategory(services, t('otherCategory')).map((group) => (
                   <div key={group.label}>
                     <p className="text-xs font-semibold text-mocha uppercase tracking-wide mb-2">
                       {group.label}
@@ -393,7 +394,7 @@ export default function ChatWidget({ business, services }: Props) {
                             <p className="text-xs text-mocha mt-0.5">{s.duration_minutes} min</p>
                           </div>
                           <span className="text-sm font-semibold text-rose-deep shrink-0 ml-3">
-                            {formatPrice(s.price)}
+                            {formatPrice(s.price, locale)}
                           </span>
                         </button>
                       ))}
@@ -410,7 +411,7 @@ export default function ChatWidget({ business, services }: Props) {
                 <p className="text-sm font-medium text-chocolate">
                   {directService.name}
                 </p>
-                <span className="text-xs text-mocha">{directService.duration_minutes} min · {formatPrice(directService.price)}</span>
+                <span className="text-xs text-mocha">{directService.duration_minutes} min · {formatPrice(directService.price, locale)}</span>
               </div>
               <TimeSlotPicker
                 businessId={business.id}
@@ -449,18 +450,18 @@ export default function ChatWidget({ business, services }: Props) {
               <>
                 <ChatMessage
                   role="assistant"
-                  content={`Hei! Olen ${business.name}:n ajanvarausavustaja.\n\nMitä palvelua olet ajatellut?`}
+                  content={t('welcome', { businessName: business.name })}
                 />
                 {services.length > 0 && (
                   <div className="flex flex-wrap gap-2 pl-9">
                     {services.slice(0, 5).map((service) => (
                       <button
                         key={service.id}
-                        onClick={() => sendMessage(`Haluaisin varata ajan: ${service.name}`)}
+                        onClick={() => sendMessage(t('quickReply', { service: service.name }))}
                         className="text-xs px-3 py-1.5 rounded-full border border-rose/40 text-rose-deep bg-baby
                                    hover:bg-rose/20 transition-colors"
                       >
-                        {service.name} — {formatPrice(service.price)}
+                        {service.name} — {formatPrice(service.price, locale)}
                       </button>
                     ))}
                   </div>
@@ -527,11 +528,11 @@ export default function ChatWidget({ business, services }: Props) {
             {bookingComplete && confirmedBooking && (
               <div className="bg-cream rounded-xl px-4 py-3 ml-9 max-w-[75%] border border-card-border">
                 <p className="text-xs font-medium text-mocha uppercase tracking-wide mb-1">
-                  Varauksen tiedot
+                  {t('bookingDetails')}
                 </p>
                 <p className="text-sm font-semibold text-chocolate">{confirmedBooking.serviceName}</p>
                 <p className="text-xs text-mocha mt-0.5">
-                  {formatDateTimeHelsinki(confirmedBooking.startsAt, 'long')}
+                  {formatDateTimeHelsinki(confirmedBooking.startsAt, 'long', locale)}
                 </p>
               </div>
             )}
@@ -547,7 +548,7 @@ export default function ChatWidget({ business, services }: Props) {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Kirjoita viesti..."
+                placeholder={t('inputPlaceholder')}
                 rows={1}
                 disabled={isStreaming}
                 className="flex-1 resize-none px-3 py-2 text-sm rounded-xl border border-card-border text-chocolate
@@ -558,7 +559,7 @@ export default function ChatWidget({ business, services }: Props) {
               <button
                 onClick={() => sendMessage(input)}
                 disabled={!input.trim() || isStreaming}
-                aria-label="Lähetä viesti"
+                aria-label={t('send')}
                 className="flex-shrink-0 p-2.5 rounded-xl bg-chocolate text-warm-white
                            hover:bg-chocolate/85
                            focus:outline-none focus:ring-2 focus:ring-rose focus:ring-offset-1
@@ -570,7 +571,7 @@ export default function ChatWidget({ business, services }: Props) {
               </button>
             </div>
             <p className="text-center text-xs text-mocha/50 mt-2">
-              Enter lähettää · Shift+Enter uusi rivi
+              {t('inputHint')}
             </p>
           </div>
         </>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { createServiceAction } from '@/app/actions/services'
 import CategorySelect from '@/components/dashboard/CategorySelect'
 
@@ -11,6 +12,8 @@ interface Props {
 export default function AddServiceForm({ existingCategories }: Props) {
   const [virhe, toiminto, lataa] = useActionState(createServiceAction, null)
   const formRef = useRef<HTMLFormElement>(null)
+  const t = useTranslations('ServiceForm')
+  const tCommon = useTranslations('Common')
 
   // Tyhjennetään lomake onnistuneen lisäyksen jälkeen
   useEffect(() => {
@@ -25,21 +28,21 @@ export default function AddServiceForm({ existingCategories }: Props) {
       action={toiminto}
       className="bg-white rounded-xl border border-card-border shadow-sm p-5"
     >
-      <h3 className="text-sm font-medium text-chocolate mb-4">Lisää palvelu</h3>
+      <h3 className="text-sm font-medium text-chocolate mb-4">{t('addTitle')}</h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
         {/* Palvelun nimi */}
         <div className="sm:col-span-1">
           <label htmlFor="name" className="block text-xs font-medium text-mocha mb-1">
-            Nimi
+            {t('name')}
           </label>
           <input
             id="name"
             name="name"
             type="text"
             required
-            placeholder="esim. Hiustenleikkaus"
+            placeholder={t('namePlaceholder')}
             className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha/50
                        focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
           />
@@ -48,7 +51,7 @@ export default function AddServiceForm({ existingCategories }: Props) {
         {/* Kesto */}
         <div>
           <label htmlFor="duration_minutes" className="block text-xs font-medium text-mocha mb-1">
-            Kesto (min)
+            {t('duration')}
           </label>
           <input
             id="duration_minutes"
@@ -66,7 +69,7 @@ export default function AddServiceForm({ existingCategories }: Props) {
         {/* Hinta */}
         <div>
           <label htmlFor="price" className="block text-xs font-medium text-mocha mb-1">
-            Hinta (€)
+            {t('price')}
           </label>
           <input
             id="price"
@@ -90,13 +93,13 @@ export default function AddServiceForm({ existingCategories }: Props) {
       {/* Huomiot */}
       <div className="mt-3">
         <label htmlFor="description" className="block text-xs font-medium text-mocha mb-1">
-          Huomiot (valinnainen)
+          {t('notes')} {tCommon('optional')}
         </label>
         <textarea
           id="description"
           name="description"
           rows={2}
-          placeholder="esim. ei raskaana oleville, sisältää poiston, kesto voi vaihdella"
+          placeholder={t('notesPlaceholder')}
           className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha/50 resize-none
                      focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
         />
@@ -117,7 +120,7 @@ export default function AddServiceForm({ existingCategories }: Props) {
                    focus:outline-none focus:ring-2 focus:ring-rose focus:ring-offset-2
                    disabled:opacity-60 disabled:cursor-not-allowed transition-all"
       >
-        {lataa ? 'Lisätään...' : 'Lisää palvelu'}
+        {lataa ? t('adding') : t('add')}
       </button>
     </form>
   )

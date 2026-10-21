@@ -3,6 +3,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { helsinkiToUTC } from '@/lib/dates'
+import { getTranslations } from 'next-intl/server'
 
 // Apufunktio: hakee kirjautuneen käyttäjän oman businessId:n
 async function getOwnBusinessId(): Promise<{ supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>; businessId: string | null }> {
@@ -28,20 +29,21 @@ export async function addSlotAction(data: {
   start_time: string // HH:MM
   end_time: string   // HH:MM
 }): Promise<string | null> {
+  const t = await getTranslations('Errors')
   const { date, start_time, end_time } = data
 
-  if (!date || !start_time || !end_time) return 'Täytä kaikki kentät.'
+  if (!date || !start_time || !end_time) return t('fillAllFields')
 
   // Validoidaan aikaikkuna JS-puolella ennen DB-kutsua
   const [sh, sm] = start_time.split(':').map(Number)
   const [eh, em] = end_time.split(':').map(Number)
   const durationMins = eh * 60 + em - (sh * 60 + sm)
 
-  if (durationMins <= 0) return 'Lopetusajan tulee olla alkuajan jälkeen.'
-  if (durationMins < 30) return 'Aikaikkunan tulee olla vähintään 30 minuuttia.'
+  if (durationMins <= 0) return t('windowEndBeforeStart')
+  if (durationMins < 30) return t('windowTooShort')
 
   const { supabase, businessId } = await getOwnBusinessId()
-  if (!businessId) return 'Kirjaudu ensin sisään.'
+  if (!businessId) return t('loginRequired')
 
   // Tarkistetaan päällekkäiset ikkunat samalle päivälle
   const { data: overlapping } = await supabase
@@ -54,7 +56,7 @@ export async function addSlotAction(data: {
 
   if (overlapping && overlapping.length > 0) {
     const o = overlapping[0]
-    return `Aikaikkuna päällekkäinen olemassa olevan kanssa (${o.start_time.slice(0, 5)}–${o.end_time.slice(0, 5)}).`
+    return t('windowOverlap', { start: o.start_time.slice(0, 5), end: o.end_time.slice(0, 5) })
   }
 
   const { error } = await supabase.from('available_slots').insert({
@@ -65,8 +67,8 @@ export async function addSlotAction(data: {
   })
 
   if (error) {
-    if (error.code === '23505') return 'Täsmälleen sama aikaikkuna on jo olemassa.'
-    return 'Aikaikkunan lisääminen epäonnistui.'
+    if (error.code === '23505') return t('windowDuplicate')
+    return t('windowAddFailed')
   }
 
   revalidatePath('/dashboard/calendar')
@@ -78,11 +80,12 @@ export async function blockSlotAction(data: {
   date: string       // YYYY-MM-DD
   slot_time: string  // HH:MM
 }): Promise<string | null> {
+  const t = await getTranslations('Errors')
   const { date, slot_time } = data
-  if (!date || !slot_time) return 'Täytä kaikki kentät.'
+  if (!date || !slot_time) return t('fillAllFields')
 
   const { supabase, businessId } = await getOwnBusinessId()
-  if (!businessId) return 'Kirjaudu ensin sisään.'
+  if (!businessId) return t('loginRequired')
 
   const { error } = await supabase.from('blocked_slots').insert({
     business_id: businessId,
@@ -91,8 +94,8 @@ export async function blockSlotAction(data: {
   })
 
   if (error) {
-    if (error.code === '23505') return 'Tämä aika on jo blokattu.'
-    return 'Blokkauksen lisääminen epäonnistui.'
+    if (error.code === '23505') return t('alreadyBlocked')
+    return t('blockFailed')
   }
 
   revalidatePath('/dashboard/calendar')
@@ -101,8 +104,9 @@ export async function blockSlotAction(data: {
 
 // Poistaa blokatun ajan
 export async function unblockSlotAction(slotId: string): Promise<string | null> {
+  const t = await getTranslations('Errors')
   const { supabase, businessId } = await getOwnBusinessId()
-  if (!businessId) return 'Kirjaudu ensin sisään.'
+  if (!businessId) return t('loginRequired')
 
   const { error } = await supabase
     .from('blocked_slots')
@@ -110,7 +114,7 @@ export async function unblockSlotAction(slotId: string): Promise<string | null> 
     .eq('id', slotId)
     .eq('business_id', businessId)
 
-  if (error) return 'Poistaminen epäonnistui.'
+  if (error) return t('deleteFailed')
 
   revalidatePath('/dashboard/calendar')
   return null
@@ -118,8 +122,9 @@ export async function unblockSlotAction(slotId: string): Promise<string | null> 
 
 // Poistaa aikaikkunan — estää poiston jos siihen osuu varauksia
 export async function deleteSlotAction(slotId: string): Promise<string | null> {
+  const t = await getTranslations('Errors')
   const { supabase, businessId } = await getOwnBusinessId()
-  if (!businessId) return 'Kirjaudu ensin sisään.'
+  if (!businessId) return t('loginRequired')
 
   // Haetaan ikkuna — RLS varmistaa omistajuuden (palauttaa null jos ei omistaja)
   const { data: slot } = await supabase
@@ -128,7 +133,7 @@ export async function deleteSlotAction(slotId: string): Promise<string | null> {
     .eq('id', slotId)
     .single()
 
-  if (!slot) return 'Aikaikkunaa ei löydy.'
+  if (!slot) return t('windowNotFound')
 
   // Tarkistetaan ettei ikkunaan osu vahvistettuja varauksia.
   // start_time ja end_time ovat Helsingin paikallisaikoja (HH:MM) — muunnetaan UTC:ksi
@@ -146,7 +151,7 @@ export async function deleteSlotAction(slotId: string): Promise<string | null> {
     .limit(1)
 
   if (conflicting && conflicting.length > 0) {
-    return 'Aikaikkunalle on varauksia — peru varaukset ensin Varaukset-sivulla.'
+    return t('windowHasBookings')
   }
 
   const { error } = await supabase
@@ -154,7 +159,7 @@ export async function deleteSlotAction(slotId: string): Promise<string | null> {
     .delete()
     .eq('id', slotId)
 
-  if (error) return 'Poistaminen epäonnistui.'
+  if (error) return t('deleteFailed')
 
   revalidatePath('/dashboard/calendar')
   return null

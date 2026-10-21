@@ -1,23 +1,17 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import { deleteServiceAction, toggleServiceAction } from '@/app/actions/services'
 import EditServiceModal from '@/components/dashboard/EditServiceModal'
+import { toIntlLocale } from '@/lib/dates'
 import type { Database } from '@/types/database'
 
 type Service = Database['public']['Tables']['services']['Row']
 
-// Muotoilee minuutit luettavaan muotoon: 90 → "1 t 30 min"
-function formatDuration(minutes: number) {
-  if (minutes < 60) return `${minutes} min`
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return m > 0 ? `${h} t ${m} min` : `${h} t`
-}
-
 // Muotoilee hinnan euroiksi
-function formatPrice(price: number) {
-  return new Intl.NumberFormat('fi-FI', {
+function formatPrice(price: number, locale: string) {
+  return new Intl.NumberFormat(toIntlLocale(locale), {
     style: 'currency',
     currency: 'EUR',
   }).format(price)
@@ -33,6 +27,17 @@ export default function ServiceRow({ service, existingCategories }: Props) {
   const [togglePending, startToggle] = useTransition()
   const [deletePending, startDelete] = useTransition()
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const t = useTranslations('ServiceRow')
+  const tCommon = useTranslations('Common')
+  const locale = useLocale()
+
+  // Muotoilee minuutit luettavaan muotoon: 90 → "1 t 30 min" / "1 h 30 min"
+  function formatDuration(minutes: number) {
+    if (minutes < 60) return t('minutes', { m: minutes })
+    const h = Math.floor(minutes / 60)
+    const m = minutes % 60
+    return m > 0 ? t('hoursMinutes', { h, m }) : t('hours', { h })
+  }
 
   const isPending = togglePending || deletePending
 
@@ -44,7 +49,7 @@ export default function ServiceRow({ service, existingCategories }: Props) {
   }
 
   function handleDelete() {
-    if (!window.confirm(`Poistetaanko palvelu "${service.name}"?`)) return
+    if (!window.confirm(t('deleteConfirm', { name: service.name }))) return
     setDeleteError(null)
     const fd = new FormData()
     fd.append('id', service.id)
@@ -81,7 +86,7 @@ export default function ServiceRow({ service, existingCategories }: Props) {
         </div>
         <p className="text-xs text-mocha mt-0.5">
           {formatDuration(service.duration_minutes)} &middot;{' '}
-          {formatPrice(Number(service.price))}
+          {formatPrice(Number(service.price), locale)}
         </p>
         {service.description && (
           <p className="text-xs text-mocha/70 mt-1 truncate">{service.description}</p>
@@ -95,7 +100,7 @@ export default function ServiceRow({ service, existingCategories }: Props) {
         <button
           onClick={() => setEditOpen(true)}
           disabled={isPending}
-          title="Muokkaa palvelua"
+          title={t('edit')}
           className="p-1.5 rounded-lg text-mocha hover:text-rose-deep hover:bg-baby transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -107,7 +112,7 @@ export default function ServiceRow({ service, existingCategories }: Props) {
         <button
           onClick={handleToggle}
           disabled={isPending}
-          title={service.active ? 'Piilota palvelu' : 'Aktivoi palvelu'}
+          title={service.active ? t('hide') : t('activate')}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
             service.active
               ? 'bg-green-50 text-green-700 hover:bg-green-100'
@@ -115,17 +120,17 @@ export default function ServiceRow({ service, existingCategories }: Props) {
           }`}
         >
           {togglePending
-            ? 'Tallennetaan...'
+            ? tCommon('saving')
             : service.active
-              ? 'Aktiivinen'
-              : 'Piilotettu'}
+              ? t('active')
+              : t('hidden')}
         </button>
 
         {/* Poisto */}
         <button
           onClick={handleDelete}
           disabled={isPending}
-          title="Poista palvelu"
+          title={t('delete')}
           className="p-1.5 rounded-lg text-mocha hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {deletePending ? (

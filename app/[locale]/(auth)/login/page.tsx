@@ -1,10 +1,12 @@
 'use client'
 
 import { useActionState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { loginAction } from '@/app/actions/auth'
 
 export default function LoginPage() {
+  const t = useTranslations('Auth')
   const [virhe, toiminto, lataa] = useActionState(loginAction, null)
 
   return (
@@ -16,13 +18,13 @@ export default function LoginPage() {
           <h1 className="font-serif text-3xl font-semibold text-chocolate">
             Veloure
           </h1>
-          <p className="text-mocha mt-2 text-sm">Tervetuloa takaisin</p>
+          <p className="text-mocha mt-2 text-sm">{t('loginSubtitle')}</p>
         </div>
 
         {/* Lomakekortti */}
         <div className="bg-white rounded-2xl border border-card-border shadow-xl shadow-rose/20 p-8">
           <h2 className="font-serif text-xl font-semibold text-chocolate mb-6">
-            Kirjaudu sisään
+            {t('loginTitle')}
           </h2>
 
           <form action={toiminto} className="space-y-5">
@@ -33,7 +35,7 @@ export default function LoginPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-chocolate mb-1"
               >
-                Sähköposti
+                {t('email')}
               </label>
               <input
                 id="email"
@@ -41,7 +43,7 @@ export default function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                placeholder="sinä@esimerkki.fi"
+                placeholder={t('emailPlaceholder')}
                 className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha/50
                            focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent
                            transition-shadow"
@@ -54,7 +56,7 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-chocolate mb-1"
               >
-                Salasana
+                {t('password')}
               </label>
               <input
                 id="password"
@@ -86,18 +88,18 @@ export default function LoginPage() {
                          disabled:opacity-60 disabled:cursor-not-allowed
                          transition-all"
             >
-              {lataa ? 'Kirjaudutaan...' : 'Kirjaudu sisään'}
+              {lataa ? t('loggingIn') : t('login')}
             </button>
           </form>
 
           {/* Rekisteröintilinkki */}
           <p className="text-center text-sm text-mocha mt-6">
-            Ei vielä tiliä?{' '}
+            {t('noAccount')}{' '}
             <Link
               href="/register"
               className="text-rose-deep hover:text-chocolate font-medium transition-colors"
             >
-              Luo tili
+              {t('createAccount')}
             </Link>
           </p>
         </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { updateServiceAction } from '@/app/actions/services'
 import CategorySelect from '@/components/dashboard/CategorySelect'
 import type { Database } from '@/types/database'
@@ -16,6 +17,8 @@ interface Props {
 export default function EditServiceModal({ service, existingCategories, onClose }: Props) {
   const [virhe, toiminto, lataa] = useActionState(updateServiceAction, null)
   const prevLataa = useRef(false)
+  const t = useTranslations('ServiceForm')
+  const tCommon = useTranslations('Common')
 
   // Suljetaan modaali kun toiminto valmistuu ilman virhettä
   useEffect(() => {
@@ -44,11 +47,11 @@ export default function EditServiceModal({ service, existingCategories, onClose 
 
         {/* Otsikkorivi */}
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-serif text-base font-semibold text-chocolate">Muokkaa palvelua</h2>
+          <h2 className="font-serif text-base font-semibold text-chocolate">{t('editTitle')}</h2>
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg text-mocha hover:text-chocolate hover:bg-cream transition-colors"
-            aria-label="Sulje"
+            aria-label={tCommon('close')}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -63,7 +66,7 @@ export default function EditServiceModal({ service, existingCategories, onClose 
           {/* Nimi */}
           <div>
             <label htmlFor="edit-name" className="block text-xs font-medium text-mocha mb-1">
-              Nimi
+              {t('name')}
             </label>
             <input
               id="edit-name"
@@ -86,14 +89,14 @@ export default function EditServiceModal({ service, existingCategories, onClose 
           {/* Huomiot */}
           <div>
             <label htmlFor="edit-description" className="block text-xs font-medium text-mocha mb-1">
-              Huomiot <span className="text-mocha/60 font-normal">(valinnainen)</span>
+              {t('notes')} <span className="text-mocha/60 font-normal">{tCommon('optional')}</span>
             </label>
             <textarea
               id="edit-description"
               name="description"
               rows={2}
               defaultValue={service.description ?? ''}
-              placeholder="esim. ei raskaana oleville, sisältää poiston, kesto voi vaihdella"
+              placeholder={t('notesPlaceholder')}
               className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha/50 resize-none
                          focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
             />
@@ -103,7 +106,7 @@ export default function EditServiceModal({ service, existingCategories, onClose 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="edit-duration" className="block text-xs font-medium text-mocha mb-1">
-                Kesto (min)
+                {t('duration')}
               </label>
               <input
                 id="edit-duration"
@@ -119,7 +122,7 @@ export default function EditServiceModal({ service, existingCategories, onClose 
             </div>
             <div>
               <label htmlFor="edit-price" className="block text-xs font-medium text-mocha mb-1">
-                Hinta (€)
+                {t('price')}
               </label>
               <input
                 id="edit-price"
@@ -151,7 +154,7 @@ export default function EditServiceModal({ service, existingCategories, onClose 
               className="flex-1 px-4 py-2 text-sm font-medium text-mocha rounded-lg border border-card-border
                          hover:bg-cream transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Peruuta
+              {tCommon('cancel')}
             </button>
             <button
               type="submit"
@@ -161,7 +164,7 @@ export default function EditServiceModal({ service, existingCategories, onClose 
                          focus:outline-none focus:ring-2 focus:ring-rose focus:ring-offset-2
                          disabled:opacity-60 disabled:cursor-not-allowed transition-all"
             >
-              {lataa ? 'Tallennetaan...' : 'Tallenna'}
+              {lataa ? tCommon('saving') : tCommon('save')}
             </button>
           </div>
         </form>

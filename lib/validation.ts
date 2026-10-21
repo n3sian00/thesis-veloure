@@ -48,6 +48,8 @@ export const waitlistRequestSchema = z.object({
   customer_name: z.string().min(1).max(120),
   customer_email: z.email().max(200),
   customer_phone: z.string().max(40).optional(),
+  // Tarkempi locale-tarkistus (hasLocale) tehdään reitissä.
+  locale: z.string().optional(),
 })
 
 export type WaitlistRequest = z.infer<typeof waitlistRequestSchema>

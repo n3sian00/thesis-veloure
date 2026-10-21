@@ -1,13 +1,15 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Link, usePathname } from '@/i18n/navigation'
 import { logoutAction } from '@/app/actions/logout'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
-// Navigointilinkit sivupalkissa
+// Navigointilinkit sivupalkissa — label on Sidebar-nimiavaruuden käännösavain
 const NAV_LINKS = [
   {
     href: '/dashboard',
-    label: 'Etusivu',
+    label: 'home',
     // Aktiivinen vain tarkalleen /dashboard — ei alalinkeillä
     exact: true,
     icon: (
@@ -18,7 +20,7 @@ const NAV_LINKS = [
   },
   {
     href: '/dashboard/services',
-    label: 'Palvelut',
+    label: 'services',
     exact: false,
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -28,7 +30,7 @@ const NAV_LINKS = [
   },
   {
     href: '/dashboard/bookings',
-    label: 'Varaukset',
+    label: 'bookings',
     exact: false,
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -38,7 +40,7 @@ const NAV_LINKS = [
   },
   {
     href: '/dashboard/calendar',
-    label: 'Kalenteri',
+    label: 'calendar',
     exact: false,
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -48,7 +50,7 @@ const NAV_LINKS = [
   },
   {
     href: '/dashboard/settings',
-    label: 'Asetukset',
+    label: 'settings',
     exact: false,
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -57,7 +59,7 @@ const NAV_LINKS = [
       </svg>
     ),
   },
-]
+] as const
 
 interface Props {
   business: { name: string; slug: string } | null
@@ -65,6 +67,7 @@ interface Props {
 
 export default function SidebarNav({ business }: Props) {
   const pathname = usePathname()
+  const t = useTranslations('Sidebar')
 
   return (
     <aside className="w-64 min-h-screen bg-white border-r border-card-border flex flex-col shrink-0">
@@ -97,7 +100,7 @@ export default function SidebarNav({ business }: Props) {
               <span className={isActive ? 'text-rose-deep' : 'text-mocha/60'}>
                 {icon}
               </span>
-              {label}
+              {t(label)}
             </Link>
           )
         })}
@@ -107,7 +110,7 @@ export default function SidebarNav({ business }: Props) {
       <div className="px-3 pb-4 space-y-2">
         {business && (
           <div className="px-3 py-2.5 bg-baby rounded-lg">
-            <p className="text-xs text-mocha mb-0.5">Asiakaslinkkisi</p>
+            <p className="text-xs text-mocha mb-0.5">{t('customerLink')}</p>
             <a
               href={`/${business.slug}`}
               target="_blank"
@@ -127,9 +130,13 @@ export default function SidebarNav({ business }: Props) {
             <svg className="w-4 h-4 text-mocha/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            Kirjaudu ulos
+            {t('logout')}
           </button>
         </form>
+
+        <div className="px-3 pt-1">
+          <LanguageSwitcher />
+        </div>
       </div>
     </aside>
   )

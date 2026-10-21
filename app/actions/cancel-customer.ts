@@ -1,6 +1,6 @@
 'use server'
 
-import { redirect } from '@/i18n/navigation'
+import { redirect, getPathname } from '@/i18n/navigation'
 import { getLocale } from 'next-intl/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { verifyCancelToken } from '@/lib/tokens'
@@ -31,7 +31,7 @@ export async function cancelCustomerBookingAction(formData: FormData): Promise<v
   const { data: booking } = await supabase
     .from('bookings')
     .select(`
-      id, customer_name, customer_email, starts_at, status, service_id, business_id,
+      id, customer_name, customer_email, starts_at, status, service_id, business_id, locale,
       services ( name ),
       businesses ( id, name, slug, cancellation_hours )
     `)
@@ -72,31 +72,21 @@ export async function cancelCustomerBookingAction(formData: FormData): Promise<v
     : ((booking.services as { name: string } | null)?.name ?? 'Palvelu')
 
   const businessName = businessInfo?.name ?? 'Palveluntarjoaja'
-  const startsAt     = new Date(booking.starts_at)
-
-  const dateLabel = startsAt.toLocaleDateString('fi-FI', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-    timeZone: 'Europe/Helsinki',
-  })
-  const timeLabel = startsAt.toLocaleTimeString('fi-FI', {
-    hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Helsinki',
-  })
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? ''
-  const bookingUrl = businessInfo?.slug ? `${baseUrl}/${businessInfo.slug}` : baseUrl
 
   Promise.all([
     sendBookingCancellationToCustomer({
       customerName:  booking.customer_name,
       customerEmail: booking.customer_email,
       serviceName,
-      date: dateLabel,
-      time: timeLabel,
+      startsAt: booking.starts_at,
       businessName,
+      locale: booking.locale,
     }),
     supabase
       .from('waitlist')
-      .select('customer_name, customer_email')
+      .select('customer_name, customer_email, locale')
       .eq('business_id', booking.business_id)
       .eq('service_id',  booking.service_id)
       .then(({ data: waitlist }) => {
@@ -108,7 +98,11 @@ export async function cancelCustomerBookingAction(formData: FormData): Promise<v
               customerEmail: entry.customer_email,
               serviceName,
               businessName,
-              bookingUrl,
+              // Varauslinkki jonottajan omalla kielellä (fi: /slug, en: /en/slug)
+              bookingUrl: businessInfo?.slug
+                ? `${baseUrl}${getPathname({ href: `/${businessInfo.slug}`, locale: entry.locale })}`
+                : baseUrl,
+              locale: entry.locale,
             })
           )
         )

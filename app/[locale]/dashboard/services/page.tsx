@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from '@/i18n/navigation'
-import { getLocale } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import AddServiceForm from '@/components/dashboard/AddServiceForm'
 import ServiceRow from '@/components/dashboard/ServiceRow'
 import type { Database } from '@/types/database'
@@ -25,8 +25,11 @@ export default async function ServicesPage() {
     .eq('user_id', user.id)
     .single()
 
+  const t = await getTranslations('ServicesPage')
+  const tCommon = await getTranslations('Common')
+
   if (!business) {
-    return <p className="text-mocha">Yritystietoja ei löydy.</p>
+    return <p className="text-mocha">{tCommon('businessNotFound')}</p>
   }
 
   // Haetaan kaikki palvelut (myös ei-aktiiviset omistajalle)
@@ -49,9 +52,9 @@ export default async function ServicesPage() {
 
       {/* Otsikko */}
       <div>
-        <h1 className="font-serif text-2xl font-semibold text-chocolate">Palvelut</h1>
+        <h1 className="font-serif text-2xl font-semibold text-chocolate">{t('title')}</h1>
         <p className="text-mocha mt-1">
-          Hallitse tarjoamiasi palveluita — AI käyttää näitä asiakasohjauksessa.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -62,7 +65,7 @@ export default async function ServicesPage() {
       {(!services || services.length === 0) ? (
         <div className="bg-white rounded-xl border border-card-border p-8 text-center shadow-sm">
           <p className="text-mocha text-sm">
-            Ei vielä palveluita. Lisää ensimmäinen palvelu yllä olevalla lomakkeella.
+            {t('empty')}
           </p>
         </div>
       ) : (
@@ -71,7 +74,7 @@ export default async function ServicesPage() {
           {/* Aktiiviset palvelut */}
           {aktiiviset.length > 0 && (
             <ServiceGroup
-              otsikko="Aktiiviset palvelut"
+              otsikko={t('active')}
               services={aktiiviset}
               existingCategories={existingCategories}
             />
@@ -80,7 +83,7 @@ export default async function ServicesPage() {
           {/* Ei-aktiiviset palvelut */}
           {eiAktiiviset.length > 0 && (
             <ServiceGroup
-              otsikko="Piilotetut palvelut"
+              otsikko={t('hidden')}
               services={eiAktiiviset}
               existingCategories={existingCategories}
               dim

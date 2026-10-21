@@ -1,3 +1,5 @@
+import { useTranslations } from 'next-intl'
+
 // Regex poistaa booking-triggerin näkyvästä tekstistä
 const BOOKING_TRIGGER_REGEX = /\[VARAUS:\{.*?\}\]/gs
 
@@ -7,6 +9,7 @@ interface Props {
 }
 
 export default function ChatMessage({ role, content }: Props) {
+  const t = useTranslations('ChatWidget')
   // Poistetaan [VARAUS:{...}] tagit näytettävästä tekstistä
   const cleanContent = content.replace(BOOKING_TRIGGER_REGEX, '').trim()
 
@@ -25,7 +28,7 @@ export default function ChatMessage({ role, content }: Props) {
             : 'bg-cream text-chocolate'
         }`}
       >
-        {isUser ? 'S' : 'AI'}
+        {isUser ? t('userAvatar') : 'AI'}
       </div>
 
       {/* Viestikupla */}

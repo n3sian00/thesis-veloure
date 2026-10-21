@@ -1,14 +1,12 @@
 'use client'
 
 import { useActionState } from 'react'
+import { useTranslations } from 'next-intl'
 import { updateBusinessAction } from '@/app/actions/business'
+import { routing } from '@/i18n/routing'
 
-const TEEMAT = [
-  { value: 'pink', label: 'Pinkki' },
-  { value: 'lavender', label: 'Laventeli' },
-  { value: 'rose', label: 'Ruusu' },
-  { value: 'teal', label: 'Sinivihreä' },
-]
+// Teeman arvot — näyttönimet tulevat käännöksistä (Settings.themes.<arvo>)
+const TEEMAT = ['pink', 'lavender', 'rose', 'teal'] as const
 
 interface Props {
   business: {
@@ -19,11 +17,15 @@ interface Props {
     cancellation_hours: number
     theme: string
     general_notes: string | null
+    locale: string
   }
 }
 
 export default function BusinessSettingsForm({ business }: Props) {
   const [tulos, toiminto, lataa] = useActionState(updateBusinessAction, null)
+  const t = useTranslations('Settings')
+  const tCommon = useTranslations('Common')
+  const tLang = useTranslations('LanguageNames')
 
   return (
     <form action={toiminto} className="space-y-6 max-w-lg">
@@ -31,7 +33,7 @@ export default function BusinessSettingsForm({ business }: Props) {
       {/* Salongin nimi */}
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-chocolate mb-1">
-          Salongin nimi
+          {t('name')}
         </label>
         <input
           id="name"
@@ -47,14 +49,14 @@ export default function BusinessSettingsForm({ business }: Props) {
       {/* Kaupunki */}
       <div>
         <label htmlFor="city" className="block text-sm font-medium text-chocolate mb-1">
-          Kaupunki
+          {t('city')}
         </label>
         <input
           id="city"
           name="city"
           type="text"
           defaultValue={business.city ?? ''}
-          placeholder="esim. Helsinki"
+          placeholder={t('cityPlaceholder')}
           className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha/50
                      focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
         />
@@ -63,19 +65,19 @@ export default function BusinessSettingsForm({ business }: Props) {
       {/* URL-tunniste (vain näyttö, ei muokattavissa) */}
       <div>
         <label className="block text-sm font-medium text-chocolate mb-1">
-          URL-tunniste
+          {t('slug')}
         </label>
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-card-border bg-cream">
           <span className="text-mocha text-sm">veloure.fi/</span>
           <span className="text-sm font-medium text-chocolate">{business.slug}</span>
         </div>
-        <p className="text-xs text-mocha/70 mt-1">URL-tunnistetta ei voi muuttaa rekisteröinnin jälkeen.</p>
+        <p className="text-xs text-mocha/70 mt-1">{t('slugHint')}</p>
       </div>
 
       {/* Peruutusaika */}
       <div>
         <label htmlFor="cancellation_hours" className="block text-sm font-medium text-chocolate mb-1">
-          Peruutusaika (tuntia ennen)
+          {t('cancellationHours')}
         </label>
         <input
           id="cancellation_hours"
@@ -89,30 +91,49 @@ export default function BusinessSettingsForm({ business }: Props) {
                      focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
         />
         <p className="text-xs text-mocha/70 mt-1">
-          Asiakas voi peruuttaa varauksen tähän asti etukäteen.
+          {t('cancellationHint')}
         </p>
       </div>
 
       {/* Yleiset huomiot */}
       <div>
         <label htmlFor="general_notes" className="block text-sm font-medium text-chocolate mb-1">
-          Yleiset huomiot asiakkaille (valinnainen)
+          {t('generalNotes')} {tCommon('optional')}
         </label>
         <textarea
           id="general_notes"
           name="general_notes"
           rows={3}
           defaultValue={business.general_notes ?? ''}
-          placeholder="esim. aukioloajat, valmistautumisohjeet, maksutavat"
+          placeholder={t('generalNotesPlaceholder')}
           className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha/50 resize-none
                      focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
         />
       </div>
 
+      {/* Kieli */}
+      <div>
+        <label htmlFor="locale" className="block text-sm font-medium text-chocolate mb-1">
+          {t('language')}
+        </label>
+        <select
+          id="locale"
+          name="locale"
+          defaultValue={business.locale}
+          className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate bg-white
+                     focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
+        >
+          {routing.locales.map((loc) => (
+            <option key={loc} value={loc}>{tLang(loc)}</option>
+          ))}
+        </select>
+        <p className="text-xs text-mocha/70 mt-1">{t('languageHint')}</p>
+      </div>
+
       {/* Teema */}
       <div>
         <label htmlFor="theme" className="block text-sm font-medium text-chocolate mb-1">
-          Chat-teema
+          {t('theme')}
         </label>
         <select
           id="theme"
@@ -121,11 +142,11 @@ export default function BusinessSettingsForm({ business }: Props) {
           className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate bg-white
                      focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
         >
-          {TEEMAT.map(({ value, label }) => (
-            <option key={value} value={value}>{label}</option>
+          {TEEMAT.map((value) => (
+            <option key={value} value={value}>{t(`themes.${value}`)}</option>
           ))}
         </select>
-        <p className="text-xs text-mocha/70 mt-1">Asiakkaiden chat-ikkunan värimaailma.</p>
+        <p className="text-xs text-mocha/70 mt-1">{t('themeHint')}</p>
       </div>
 
       {/* Palaute */}
@@ -141,7 +162,7 @@ export default function BusinessSettingsForm({ business }: Props) {
                    focus:outline-none focus:ring-2 focus:ring-rose focus:ring-offset-2
                    disabled:opacity-60 disabled:cursor-not-allowed transition-all"
       >
-        {lataa ? 'Tallennetaan...' : 'Tallenna muutokset'}
+        {lataa ? tCommon('saving') : t('submit')}
       </button>
     </form>
   )

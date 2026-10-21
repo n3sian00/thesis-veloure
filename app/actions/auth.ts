@@ -3,7 +3,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from '@/i18n/navigation'
 import { routing } from '@/i18n/routing'
-import { getLocale } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { hasLocale } from 'next-intl'
 import { isReservedSlug } from '@/lib/reserved-slugs'
 
@@ -24,11 +24,12 @@ export async function loginAction(
   _prevState: string | null,
   formData: FormData
 ): Promise<string | null> {
+  const t = await getTranslations('Errors')
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
   if (!email || !password) {
-    return 'Täytä kaikki kentät.'
+    return t('fillAllFields')
   }
 
   const supabase = await createSupabaseServerClient()
@@ -36,14 +37,14 @@ export async function loginAction(
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) {
-    // Suomenkieliset virheilmoitukset yleisimmille tilanteille
+    // Käännetyt virheilmoitukset yleisimmille tilanteille
     if (error.message.includes('Invalid login credentials')) {
-      return 'Väärä sähköpostiosoite tai salasana.'
+      return t('invalidCredentials')
     }
     if (error.message.includes('Email not confirmed')) {
-      return 'Vahvista sähköpostiosoitteesi ennen kirjautumista.'
+      return t('emailNotConfirmed')
     }
-    return 'Kirjautuminen epäonnistui. Yritä uudelleen.'
+    return t('loginFailed')
   }
 
   // Ohjataan yrittäjän oman businesses.locale-kielen mukaiseen dashboardiin
@@ -68,28 +69,29 @@ export async function registerAction(
   _prevState: string | null,
   formData: FormData
 ): Promise<string | null> {
+  const t = await getTranslations('Errors')
   const businessName = formData.get('businessName') as string
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
   if (!businessName || !email || !password) {
-    return 'Täytä kaikki kentät.'
+    return t('fillAllFields')
   }
 
   if (password.length < 8) {
-    return 'Salasanan tulee olla vähintään 8 merkkiä pitkä.'
+    return t('passwordTooShort')
   }
 
   const slug = generateSlug(businessName)
 
   if (!slug) {
-    return 'Salongin nimestä ei voitu luoda URL-tunnistetta. Käytä kirjaimia tai numeroita.'
+    return t('slugInvalid')
   }
 
   // Reititykseen varatut sanat (esim. "dashboard", "en") eivät kelpaa slugiksi,
   // koska ne törmäisivät sovelluksen omiin reitteihin [locale]-segmentin sisällä.
   if (isReservedSlug(slug)) {
-    return `URL-tunniste "${slug}" on varattu järjestelmän käyttöön. Kokeile eri salongin nimeä.`
+    return t('slugReserved', { slug })
   }
 
   const supabase = await createSupabaseServerClient()
@@ -102,13 +104,13 @@ export async function registerAction(
 
   if (authError) {
     if (authError.message.includes('already registered')) {
-      return 'Tällä sähköpostiosoitteella on jo tili. Kirjaudu sisään.'
+      return t('emailTaken')
     }
-    return 'Tilin luominen epäonnistui. Yritä uudelleen.'
+    return t('registerFailed')
   }
 
   if (!authData.user) {
-    return 'Tilin luominen epäonnistui. Yritä uudelleen.'
+    return t('registerFailed')
   }
 
   // Yrityksen kieli tallennetaan rekisteröintihetken aktiivisesta localesta
@@ -126,9 +128,9 @@ export async function registerAction(
   if (businessError) {
     // Slug on jo käytössä
     if (businessError.code === '23505') {
-      return `URL-tunniste "${slug}" on jo käytössä. Kokeile eri salongin nimeä.`
+      return t('slugTaken', { slug })
     }
-    return 'Yritystietojen tallentaminen epäonnistui. Yritä uudelleen.'
+    return t('businessCreateFailed')
   }
 
   redirect({ href: '/dashboard', locale })

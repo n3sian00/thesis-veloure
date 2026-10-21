@@ -1,3 +1,5 @@
+import { hasLocale } from 'next-intl'
+import { routing } from '@/i18n/routing'
 import { createAdminClient } from '@/lib/supabase/server'
 import { supabaseErr } from '@/lib/log-error'
 import { waitlistRequestSchema, zodFieldList } from '@/lib/validation'
@@ -20,6 +22,9 @@ export async function POST(request: Request) {
   }
 
   const { business_id, service_id, customer_name, customer_email } = parsed.data
+  const waitlistLocale = hasLocale(routing.locales, parsed.data.locale)
+    ? parsed.data.locale
+    : routing.defaultLocale
 
   const supabase = createAdminClient()
 
@@ -54,6 +59,7 @@ export async function POST(request: Request) {
     service_id,
     customer_name: customer_name.trim(),
     customer_email: customer_email.toLowerCase().trim(),
+    locale: waitlistLocale,
   })
 
   if (error) {

@@ -1,7 +1,31 @@
 import { Resend } from 'resend'
+import { createTranslator, hasLocale } from 'next-intl'
+import { routing } from '@/i18n/routing'
 import { resendErr } from '@/lib/log-error'
+import { formatDateLongHelsinki, formatDateTimeHelsinki, formatTimeHelsinki } from '@/lib/dates'
+import fi from '@/messages/fi.json'
+import en from '@/messages/en.json'
 
 const FROM = process.env.EMAIL_FROM ?? 'noreply@kauneusai.fi'
+
+// Sähköpostit lähetetään myös request-kontekstin ulkopuolelta (cron, waitUntil),
+// joten käännökset haetaan suoraan viestitiedostoista eikä getTranslations():lla.
+const MESSAGES = { fi, en }
+
+function emailTranslator(locale: string) {
+  const loc = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale
+  return createTranslator({ locale: loc, messages: MESSAGES[loc] as typeof fi, namespace: 'Email' })
+}
+
+type EmailTranslator = ReturnType<typeof emailTranslator>
+
+// "tiistai 8. huhtikuuta 2026 klo 14.30" / "Tuesday 8 April 2026 at 14:30"
+function formatEmailDateTime(t: EmailTranslator, iso: string, locale: string) {
+  return t('dateTime', {
+    date: formatDateLongHelsinki(iso, locale),
+    time: formatTimeHelsinki(iso, locale),
+  })
+}
 
 function getResend(): Resend | null {
   if (!process.env.RESEND_API_KEY) {
@@ -17,30 +41,31 @@ export async function sendBookingConfirmationToCustomer(params: {
   customerName: string
   customerEmail: string
   serviceName: string
-  date: string   // esim. "tiistai 8. huhtikuuta 2026"
-  time: string   // esim. "14:30"
+  startsAt: string  // ISO-aikaleima
   businessName: string
   cancellationUrl?: string
+  locale: string    // varauksen kieli (bookings.locale)
 }): Promise<boolean> {
   const resend = getResend()
   if (!resend) return false
-  const { customerName, customerEmail, serviceName, date, time, businessName, cancellationUrl } = params
+  const { customerName, customerEmail, serviceName, startsAt, businessName, cancellationUrl, locale } = params
+  const t = emailTranslator(locale)
 
   const { error } = await resend.emails.send({
     from: FROM,
     to: customerEmail,
-    subject: `Varausvahvistus — ${serviceName} @ ${businessName}`,
-    text: `Hei ${customerName},
+    subject: t('confirmationSubject', { service: serviceName, business: businessName }),
+    text: `${t('greeting', { name: customerName })}
 
-varauksesi on vahvistettu!
+${t('confirmationIntro')}
 
-Palvelu: ${serviceName}
-Aika: ${date} klo ${time}
-Paikka: ${businessName}
-${cancellationUrl ? `\nHalutessasi peruuttaa varauksesi:\n${cancellationUrl}\n` : ''}
-Muutoksia tai peruutuksia varten ota yhteyttä suoraan ${businessName}:iin.
+${t('serviceLine', { service: serviceName })}
+${t('timeLine', { dateTime: formatEmailDateTime(t, startsAt, locale) })}
+${t('placeLine', { business: businessName })}
+${cancellationUrl ? `\n${t('cancelLinkIntro')}\n${cancellationUrl}\n` : ''}
+${t('contactForChanges', { business: businessName })}
 
-Nähdään pian!
+${t('seeYouSoon')}
 ${businessName}`,
   })
 
@@ -58,24 +83,26 @@ export async function sendBookingNotificationToOwner(params: {
   customerPhone?: string | null
   customerNotes?: string | null
   serviceName: string
-  date: string
-  time: string
+  startsAt: string  // ISO-aikaleima
   ownerEmail: string
+  locale: string    // yrityksen kieli (businesses.locale)
 }): Promise<boolean> {
   const resend = getResend()
   if (!resend) return false
-  const { customerName, customerPhone, customerNotes, serviceName, date, time, ownerEmail } = params
+  const { customerName, customerPhone, customerNotes, serviceName, startsAt, ownerEmail, locale } = params
+  const t = emailTranslator(locale)
+  const dateTime = formatEmailDateTime(t, startsAt, locale)
 
   const { error } = await resend.emails.send({
     from: FROM,
     to: ownerEmail,
-    subject: `Uusi varaus — ${serviceName} ${date} klo ${time}`,
-    text: `Uusi varaus saapui!
+    subject: t('ownerSubject', { service: serviceName, dateTime }),
+    text: `${t('ownerIntro')}
 
-Palvelu: ${serviceName}
-Aika: ${date} klo ${time}
+${t('serviceLine', { service: serviceName })}
+${t('timeLine', { dateTime })}
 
-Asiakas: ${customerName}${customerPhone ? `\nPuhelin: ${customerPhone}` : ''}${customerNotes ? `\nLisätiedot: ${customerNotes}` : ''}`,
+${t('customerLine', { name: customerName })}${customerPhone ? `\n${t('phoneLine', { phone: customerPhone })}` : ''}${customerNotes ? `\n${t('notesLine', { notes: customerNotes })}` : ''}`,
   })
 
   if (error) {
@@ -91,29 +118,30 @@ export async function sendBookingCancellationToCustomer(params: {
   customerName: string
   customerEmail: string
   serviceName: string
-  date: string
-  time: string
+  startsAt: string  // ISO-aikaleima
   businessName: string
+  locale: string    // varauksen kieli (bookings.locale)
 }): Promise<boolean> {
   const resend = getResend()
   if (!resend) return false
-  const { customerName, customerEmail, serviceName, date, time, businessName } = params
+  const { customerName, customerEmail, serviceName, startsAt, businessName, locale } = params
+  const t = emailTranslator(locale)
 
   const { error } = await resend.emails.send({
     from: FROM,
     to: customerEmail,
-    subject: `Varaus peruutettu — ${serviceName} @ ${businessName}`,
-    text: `Hei ${customerName},
+    subject: t('cancellationSubject', { service: serviceName, business: businessName }),
+    text: `${t('greeting', { name: customerName })}
 
-varauksesi on peruutettu.
+${t('cancellationIntro')}
 
-Palvelu: ${serviceName}
-Aika: ${date} klo ${time}
-Paikka: ${businessName}
+${t('serviceLine', { service: serviceName })}
+${t('timeLine', { dateTime: formatEmailDateTime(t, startsAt, locale) })}
+${t('placeLine', { business: businessName })}
 
-Jos sinulla on kysyttävää, ota yhteyttä suoraan ${businessName}:iin.
+${t('contactQuestions', { business: businessName })}
 
-Toivottavasti nähdään pian!
+${t('hopeToSeeYou')}
 ${businessName}`,
   })
 
@@ -130,30 +158,32 @@ export async function sendBookingRescheduleToCustomer(params: {
   customerName: string
   customerEmail: string
   serviceName: string
-  oldDateTime: string  // esim. formatDateTimeHelsinki(vanhaAika, 'long')
-  newDateTime: string  // esim. formatDateTimeHelsinki(uusiAika, 'long')
+  oldStartsAt: string  // ISO-aikaleima
+  newStartsAt: string  // ISO-aikaleima
   businessName: string
+  locale: string       // varauksen kieli (bookings.locale)
 }): Promise<boolean> {
   const resend = getResend()
   if (!resend) return false
-  const { customerName, customerEmail, serviceName, oldDateTime, newDateTime, businessName } = params
+  const { customerName, customerEmail, serviceName, oldStartsAt, newStartsAt, businessName, locale } = params
+  const t = emailTranslator(locale)
 
   const { error } = await resend.emails.send({
     from: FROM,
     to: customerEmail,
-    subject: `Varauksen ajankohta muuttui — ${serviceName} @ ${businessName}`,
-    text: `Hei ${customerName},
+    subject: t('rescheduleSubject', { service: serviceName, business: businessName }),
+    text: `${t('greeting', { name: customerName })}
 
-varauksesi ajankohta on muuttunut.
+${t('rescheduleIntro')}
 
-Palvelu: ${serviceName}
-Vanha aika: ${oldDateTime}
-Uusi aika: ${newDateTime}
-Paikka: ${businessName}
+${t('serviceLine', { service: serviceName })}
+${t('oldTimeLine', { dateTime: formatDateTimeHelsinki(oldStartsAt, 'long', locale) })}
+${t('newTimeLine', { dateTime: formatDateTimeHelsinki(newStartsAt, 'long', locale) })}
+${t('placeLine', { business: businessName })}
 
-Jos sinulla on kysyttävää, ota yhteyttä suoraan ${businessName}:iin.
+${t('contactQuestions', { business: businessName })}
 
-Nähdään pian!
+${t('seeYouSoon')}
 ${businessName}`,
   })
 
@@ -170,28 +200,30 @@ export async function sendBookingUpdateToCustomer(params: {
   customerName: string
   customerEmail: string
   serviceName: string
-  dateTime: string  // esim. formatDateTimeHelsinki(aika, 'long')
+  startsAt: string  // ISO-aikaleima
   businessName: string
+  locale: string    // varauksen kieli (bookings.locale)
 }): Promise<boolean> {
   const resend = getResend()
   if (!resend) return false
-  const { customerName, customerEmail, serviceName, dateTime, businessName } = params
+  const { customerName, customerEmail, serviceName, startsAt, businessName, locale } = params
+  const t = emailTranslator(locale)
 
   const { error } = await resend.emails.send({
     from: FROM,
     to: customerEmail,
-    subject: `Varauksen tietoja päivitetty — ${serviceName} @ ${businessName}`,
-    text: `Hei ${customerName},
+    subject: t('updateSubject', { service: serviceName, business: businessName }),
+    text: `${t('greeting', { name: customerName })}
 
-varauksesi tietoja on päivitetty.
+${t('updateIntro')}
 
-Palvelu: ${serviceName}
-Aika: ${dateTime}
-Paikka: ${businessName}
+${t('serviceLine', { service: serviceName })}
+${t('timeLine', { dateTime: formatDateTimeHelsinki(startsAt, 'long', locale) })}
+${t('placeLine', { business: businessName })}
 
-Jos sinulla on kysyttävää, ota yhteyttä suoraan ${businessName}:iin.
+${t('contactQuestions', { business: businessName })}
 
-Nähdään pian!
+${t('seeYouSoon')}
 ${businessName}`,
   })
 
@@ -209,27 +241,29 @@ export async function sendWaitlistNotificationToCustomer(params: {
   customerEmail: string
   serviceName: string
   businessName: string
-  bookingUrl: string  // esim. https://kauneusai.fi/slug
+  bookingUrl: string  // esim. https://veloure.fi/slug tai https://veloure.fi/en/slug
+  locale: string      // jonotuslistalle liittymisen kieli (waitlist.locale)
 }): Promise<boolean> {
   const resend = getResend()
   if (!resend) return false
-  const { customerName, customerEmail, serviceName, businessName, bookingUrl } = params
+  const { customerName, customerEmail, serviceName, businessName, bookingUrl, locale } = params
+  const t = emailTranslator(locale)
 
   const { error } = await resend.emails.send({
     from: FROM,
     to: customerEmail,
-    subject: `Aika vapautui — ${serviceName} @ ${businessName}`,
-    text: `Hei ${customerName},
+    subject: t('waitlistSubject', { service: serviceName, business: businessName }),
+    text: `${t('greeting', { name: customerName })}
 
-hyvä uutinen! Jonottamasi palvelu on nyt vapautunut.
+${t('waitlistIntro')}
 
-Palvelu: ${serviceName}
-Tarjoaja: ${businessName}
+${t('serviceLine', { service: serviceName })}
+${t('providerLine', { business: businessName })}
 
-Varaa aikasi nopeasti ennen kuin se täyttyy uudelleen:
+${t('waitlistCta')}
 ${bookingUrl}
 
-Terveisin,
+${t('regards')}
 ${businessName}`,
   })
 
@@ -246,29 +280,30 @@ export async function sendBookingReminderToCustomer(params: {
   customerName: string
   customerEmail: string
   serviceName: string
-  date: string   // esim. "tiistai 8. huhtikuuta 2026"
-  time: string   // esim. "14:30"
+  startsAt: string  // ISO-aikaleima
   businessName: string
+  locale: string    // varauksen kieli (bookings.locale)
 }): Promise<boolean> {
   const resend = getResend()
   if (!resend) return false
-  const { customerName, customerEmail, serviceName, date, time, businessName } = params
+  const { customerName, customerEmail, serviceName, startsAt, businessName, locale } = params
+  const t = emailTranslator(locale)
 
   const { error } = await resend.emails.send({
     from: FROM,
     to: customerEmail,
-    subject: `Muistutus huomisesta varauksesta — ${serviceName} @ ${businessName}`,
-    text: `Hei ${customerName},
+    subject: t('reminderSubject', { service: serviceName, business: businessName }),
+    text: `${t('greeting', { name: customerName })}
 
-muistutuksena: sinulla on varaus huomenna!
+${t('reminderIntro')}
 
-Palvelu: ${serviceName}
-Aika: ${date} klo ${time}
-Paikka: ${businessName}
+${t('serviceLine', { service: serviceName })}
+${t('timeLine', { dateTime: formatEmailDateTime(t, startsAt, locale) })}
+${t('placeLine', { business: businessName })}
 
-Muutoksia tai peruutuksia varten ota yhteyttä suoraan ${businessName}:iin.
+${t('contactForChanges', { business: businessName })}
 
-Nähdään pian!
+${t('seeYouSoon')}
 ${businessName}`,
   })
 

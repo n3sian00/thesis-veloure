@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useEffect, useRef, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import { rescheduleBookingAction, updateBookingDetailsAction } from '@/app/actions/bookings'
 import TimeSlotPicker from '@/components/booking/TimeSlotPicker'
 import { formatDateTimeHelsinki } from '@/lib/dates'
@@ -32,6 +33,7 @@ export default function BookingActions({
   customerNotes,
 }: Props) {
   const [modal, setModal] = useState<'none' | 'reschedule' | 'edit'>('none')
+  const t = useTranslations('BookingActions')
 
   return (
     <>
@@ -42,7 +44,7 @@ export default function BookingActions({
                    px-2.5 py-1 rounded-lg transition-colors border border-card-border
                    hover:border-rose/40 whitespace-nowrap"
       >
-        Siirrä
+        {t('reschedule')}
       </button>
       <button
         type="button"
@@ -51,7 +53,7 @@ export default function BookingActions({
                    px-2.5 py-1 rounded-lg transition-colors border border-card-border
                    hover:border-rose/40 whitespace-nowrap"
       >
-        Muokkaa
+        {t('edit')}
       </button>
 
       {modal === 'reschedule' && (
@@ -102,6 +104,9 @@ function RescheduleModal({
   const [selectedSlot, setSelectedSlot] = useState<{ starts_at: string; ends_at: string } | null>(null)
   const [virhe, toiminto, lataa] = useActionState(rescheduleBookingAction, null)
   const prevLataa = useRef(false)
+  const t = useTranslations('BookingActions')
+  const tCommon = useTranslations('Common')
+  const locale = useLocale()
 
   // Suljetaan modaali kun toiminto valmistuu ilman virhettä
   useEffect(() => {
@@ -130,11 +135,11 @@ function RescheduleModal({
 
         {/* Otsikkorivi */}
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-serif text-base font-semibold text-chocolate">Siirrä varausta</h2>
+          <h2 className="font-serif text-base font-semibold text-chocolate">{t('rescheduleTitle')}</h2>
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg text-mocha hover:text-chocolate hover:bg-cream transition-colors"
-            aria-label="Sulje"
+            aria-label={tCommon('close')}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -143,9 +148,9 @@ function RescheduleModal({
         </div>
 
         <p className="text-xs text-mocha mb-4">
-          Nykyinen aika:{' '}
+          {t('currentTime')}{' '}
           <span className="font-medium text-chocolate">
-            {formatDateTimeHelsinki(currentStartsAt, 'long')}
+            {formatDateTimeHelsinki(currentStartsAt, 'long', locale)}
           </span>
         </p>
 
@@ -166,10 +171,10 @@ function RescheduleModal({
 
             <div className="bg-cream rounded-xl px-4 py-3 border border-card-border">
               <p className="text-xs font-medium text-mocha uppercase tracking-wide mb-1">
-                Uusi aika
+                {t('newTime')}
               </p>
               <p className="text-sm font-semibold text-chocolate">
-                {formatDateTimeHelsinki(selectedSlot.starts_at, 'long')}
+                {formatDateTimeHelsinki(selectedSlot.starts_at, 'long', locale)}
               </p>
             </div>
 
@@ -185,7 +190,7 @@ function RescheduleModal({
                 className="flex-1 px-4 py-2 text-sm font-medium text-mocha rounded-lg border border-card-border
                            hover:bg-cream transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Valitse toinen aika
+                {t('chooseAnother')}
               </button>
               <button
                 type="submit"
@@ -195,7 +200,7 @@ function RescheduleModal({
                            focus:outline-none focus:ring-2 focus:ring-rose focus:ring-offset-2
                            disabled:opacity-60 disabled:cursor-not-allowed transition-all"
               >
-                {lataa ? 'Siirretään...' : 'Vahvista siirto'}
+                {lataa ? t('rescheduling') : t('confirmReschedule')}
               </button>
             </div>
           </form>
@@ -224,6 +229,8 @@ function EditBookingModal({
 }) {
   const [virhe, toiminto, lataa] = useActionState(updateBookingDetailsAction, null)
   const prevLataa = useRef(false)
+  const t = useTranslations('BookingActions')
+  const tCommon = useTranslations('Common')
 
   // Suljetaan modaali kun toiminto valmistuu ilman virhettä
   useEffect(() => {
@@ -252,11 +259,11 @@ function EditBookingModal({
 
         {/* Otsikkorivi */}
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-serif text-base font-semibold text-chocolate">Muokkaa varausta</h2>
+          <h2 className="font-serif text-base font-semibold text-chocolate">{t('editTitle')}</h2>
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg text-mocha hover:text-chocolate hover:bg-cream transition-colors"
-            aria-label="Sulje"
+            aria-label={tCommon('close')}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -271,7 +278,7 @@ function EditBookingModal({
           {/* Nimi */}
           <div>
             <label htmlFor="booking-name" className="block text-xs font-medium text-mocha mb-1">
-              Nimi
+              {t('name')}
             </label>
             <input
               id="booking-name"
@@ -287,7 +294,7 @@ function EditBookingModal({
           {/* Sähköposti */}
           <div>
             <label htmlFor="booking-email" className="block text-xs font-medium text-mocha mb-1">
-              Sähköposti
+              {t('email')}
             </label>
             <input
               id="booking-email"
@@ -303,7 +310,7 @@ function EditBookingModal({
           {/* Puhelinnumero */}
           <div>
             <label htmlFor="booking-phone" className="block text-xs font-medium text-mocha mb-1">
-              Puhelinnumero <span className="text-mocha/60 font-normal">(valinnainen)</span>
+              {t('phone')} <span className="text-mocha/60 font-normal">{tCommon('optional')}</span>
             </label>
             <input
               id="booking-phone"
@@ -318,7 +325,7 @@ function EditBookingModal({
           {/* Lisätiedot */}
           <div>
             <label htmlFor="booking-notes" className="block text-xs font-medium text-mocha mb-1">
-              Lisätiedot <span className="text-mocha/60 font-normal">(valinnainen)</span>
+              {t('notes')} <span className="text-mocha/60 font-normal">{tCommon('optional')}</span>
             </label>
             <textarea
               id="booking-notes"
@@ -344,7 +351,7 @@ function EditBookingModal({
               className="flex-1 px-4 py-2 text-sm font-medium text-mocha rounded-lg border border-card-border
                          hover:bg-cream transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Peruuta
+              {tCommon('cancel')}
             </button>
             <button
               type="submit"
@@ -354,7 +361,7 @@ function EditBookingModal({
                          focus:outline-none focus:ring-2 focus:ring-rose focus:ring-offset-2
                          disabled:opacity-60 disabled:cursor-not-allowed transition-all"
             >
-              {lataa ? 'Tallennetaan...' : 'Tallenna'}
+              {lataa ? tCommon('saving') : tCommon('save')}
             </button>
           </div>
         </form>

@@ -5,6 +5,7 @@ import { helsinkiToUTC } from '@/lib/dates'
 import { generateCancelToken } from '@/lib/tokens'
 import { hasLocale } from 'next-intl'
 import { routing } from '@/i18n/routing'
+import { getPathname } from '@/i18n/navigation'
 import { supabaseErr, resendErr } from '@/lib/log-error'
 import { bookingRequestSchema, zodFieldList } from '@/lib/validation'
 
@@ -161,7 +162,7 @@ export async function POST(request: Request) {
       .single(),
     supabase
       .from('businesses')
-      .select('name, user_id, slug')
+      .select('name, user_id, slug, locale')
       .eq('id', business_id)
       .single(),
   ])
@@ -212,16 +213,13 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Varauksen luonti epäonnistui.' }, { status: 500 })
   }
 
-  // Muotoillaan päivä ja kellonaika sähköposteja varten
-  const dateLabel = startsAt.toLocaleDateString('fi-FI', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Helsinki',
-  })
-  const timeLabel = startsAt.toLocaleTimeString('fi-FI', {
-    hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Helsinki',
-  })
   const serviceName = service.name as string
   const businessName = (business?.name as string | undefined)?.trim() || 'Palveluntarjoaja'
   const businessSlug = business?.slug as string | undefined
+  // Yrittäjän ilmoitus lähtee yrityksen kielellä, asiakkaan viestit varauksen kielellä
+  const ownerLocale = hasLocale(routing.locales, business?.locale)
+    ? business.locale
+    : routing.defaultLocale
 
   // Haetaan yrittäjän sähköposti auth.users:sta (admin client)
   let ownerEmail: string | null = null
@@ -232,13 +230,15 @@ export async function POST(request: Request) {
     ownerEmail = ownerUser?.user?.email ?? null
   }
 
-  // Generoidaan asiakkaan peruutuslinkki (vaatii BOOKING_CANCEL_SECRET)
+  // Generoidaan asiakkaan peruutuslinkki (vaatii BOOKING_CANCEL_SECRET).
+  // Linkki osoittaa varauksen kielen mukaiselle peruutussivulle (fi: /cancel, en: /en/cancel).
   let cancellationUrl: string | undefined
   if (businessSlug && booking?.id) {
     const token = await generateCancelToken(booking.id)
     if (token) {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? ''
-      cancellationUrl = `${baseUrl}/cancel?id=${booking.id}&token=${token}`
+      const cancelPath = getPathname({ href: '/cancel', locale: bookingLocale })
+      cancellationUrl = `${baseUrl}${cancelPath}?id=${booking.id}&token=${token}`
     }
   }
 
@@ -248,10 +248,10 @@ export async function POST(request: Request) {
         customerName: customer_name.trim(),
         customerEmail: customer_email.toLowerCase().trim(),
         serviceName,
-        date: dateLabel,
-        time: timeLabel,
+        startsAt: startsAt.toISOString(),
         businessName,
         cancellationUrl,
+        locale: bookingLocale,
       }),
       ...(ownerEmail
         ? [
@@ -260,9 +260,9 @@ export async function POST(request: Request) {
               customerPhone: customer_phone?.trim() || null,
               customerNotes: customer_notes?.trim() || null,
               serviceName,
-              date: dateLabel,
-              time: timeLabel,
+              startsAt: startsAt.toISOString(),
               ownerEmail,
+              locale: ownerLocale,
             }),
           ]
         : []),

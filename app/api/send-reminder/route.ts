@@ -35,6 +35,7 @@ async function handleReminder(request: Request): Promise<Response> {
       customer_name,
       customer_email,
       starts_at,
+      locale,
       services ( name ),
       businesses ( name )
     `)
@@ -58,14 +59,6 @@ async function handleReminder(request: Request): Promise<Response> {
   const errors: string[] = []
 
   for (const booking of bookings) {
-    const startsAt = new Date(booking.starts_at)
-    const dateLabel = startsAt.toLocaleDateString('fi-FI', {
-      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Helsinki',
-    })
-    const timeLabel = startsAt.toLocaleTimeString('fi-FI', {
-      hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Helsinki',
-    })
-
     // Supabase palauttaa join-datan arrayna tai objektina
     const serviceName = Array.isArray(booking.services)
       ? (booking.services[0]?.name ?? 'Palvelu')
@@ -79,9 +72,9 @@ async function handleReminder(request: Request): Promise<Response> {
       customerName:  booking.customer_name,
       customerEmail: booking.customer_email,
       serviceName,
-      date: dateLabel,
-      time: timeLabel,
+      startsAt: booking.starts_at,
       businessName,
+      locale: booking.locale,
     })
 
     if (ok) {

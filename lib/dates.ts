@@ -3,6 +3,20 @@
 
 const TZ = 'Europe/Helsinki'
 
+// Sovelluksen kielikoodi → Intl-locale. en-GB: päivä ennen kuukautta ja 24h-kello,
+// kuten suomalaisessa muodossa.
+const INTL_LOCALES: Record<string, string> = {
+  fi: 'fi-FI',
+  en: 'en-GB',
+}
+
+/**
+ * Muuntaa sovelluksen kielikoodin ('fi' | 'en') Intl-localeksi. Tuntematon → fi-FI.
+ */
+export function toIntlLocale(locale: string = 'fi'): string {
+  return INTL_LOCALES[locale] ?? INTL_LOCALES.fi
+}
+
 /**
  * Palauttaa tämän päivän päivämäärän muodossa YYYY-MM-DD Helsingin ajassa.
  */
@@ -63,8 +77,8 @@ export function helsinkiToUTC(dateStr: string, timeStr: string): Date {
 /**
  * Muotoilee ISO-aikaleiman kellonajaksi (HH:MM) Helsingin ajassa.
  */
-export function formatTimeHelsinki(iso: string): string {
-  return new Date(iso).toLocaleTimeString('fi-FI', {
+export function formatTimeHelsinki(iso: string, locale: string = 'fi'): string {
+  return new Date(iso).toLocaleTimeString(toIntlLocale(locale), {
     timeZone: TZ,
     hour: '2-digit',
     minute: '2-digit',
@@ -73,13 +87,14 @@ export function formatTimeHelsinki(iso: string): string {
 
 /**
  * Muotoilee ISO-aikaleiman päivämääräksi + kellonaiksi Helsingin ajassa.
- * short: "ti 8.4. 09:00" | long: "tiistai 8. huhtikuuta 09:00"
+ * short: "ti 8.4. 09:00" | long: "tiistai 8. huhtikuuta 09:00" (fi)
  */
 export function formatDateTimeHelsinki(
   iso: string,
-  style: 'short' | 'long' = 'short'
+  style: 'short' | 'long' = 'short',
+  locale: string = 'fi'
 ): string {
-  return new Date(iso).toLocaleDateString('fi-FI', {
+  return new Date(iso).toLocaleDateString(toIntlLocale(locale), {
     timeZone: TZ,
     weekday: style === 'long' ? 'long' : 'short',
     day: 'numeric',
@@ -90,11 +105,25 @@ export function formatDateTimeHelsinki(
 }
 
 /**
- * Muotoilee YYYY-MM-DD -merkkijonon lyhyeksi suomalaiseksi päiväksi, esim. "ti 8.4."
+ * Muotoilee ISO-aikaleiman pitkäksi päivämääräksi Helsingin ajassa ilman kellonaikaa.
+ * fi: "tiistai 8. huhtikuuta 2026" | en: "Tuesday 8 April 2026"
  */
-export function formatDayHelsinki(dateStr: string): string {
+export function formatDateLongHelsinki(iso: string, locale: string = 'fi'): string {
+  return new Date(iso).toLocaleDateString(toIntlLocale(locale), {
+    timeZone: TZ,
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+/**
+ * Muotoilee YYYY-MM-DD -merkkijonon lyhyeksi päiväksi, esim. "ti 8.4." / "Tue 8/4"
+ */
+export function formatDayHelsinki(dateStr: string, locale: string = 'fi'): string {
   // Puolipäivä UTC ankkurina — oikea Helsingin päivä
-  return new Date(dateStr + 'T12:00:00Z').toLocaleDateString('fi-FI', {
+  return new Date(dateStr + 'T12:00:00Z').toLocaleDateString(toIntlLocale(locale), {
     timeZone: TZ,
     weekday: 'short',
     day: 'numeric',

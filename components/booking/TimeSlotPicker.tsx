@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import { nextDaysHelsinki, formatDayHelsinki, formatTimeHelsinki } from '@/lib/dates'
 
 interface SelectedSlot {
@@ -23,6 +24,10 @@ export default function TimeSlotPicker({
   duration,
   onSlotSelected,
 }: Props) {
+  const locale = useLocale()
+  const t = useTranslations('TimeSlotPicker')
+  const tCommon = useTranslations('Common')
+
   // Päivät ovat nyt YYYY-MM-DD -merkkijonoja Helsingin ajassa
   const days = nextDaysHelsinki(7)
   const [selectedDay, setSelectedDay] = useState<string>(days[0])
@@ -52,14 +57,15 @@ export default function TimeSlotPicker({
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return
-        if (data.error) setVirhe(data.error)
+        // API on lokalisoimaton — näytetään käännetty yleisviesti
+        if (data.error) setVirhe(t('fetchError'))
         else setSlots(data.slots ?? [])
       })
-      .catch(() => { if (!cancelled) setVirhe('Aikojen haku epäonnistui.') })
+      .catch(() => { if (!cancelled) setVirhe(t('fetchError')) })
       .finally(() => { if (!cancelled) setIsLoading(false) })
 
     return () => { cancelled = true }
-  }, [selectedDay, businessId, duration])
+  }, [selectedDay, businessId, duration, t])
 
   function handleSlotClick(slotIso: string) {
     const start = new Date(slotIso)
@@ -81,16 +87,16 @@ export default function TimeSlotPicker({
           service_id: serviceId,
           customer_name: waitlistName,
           customer_email: waitlistEmail,
+          locale,
         }),
       })
-      const data = await res.json()
       if (!res.ok) {
-        setWaitlistError(data.error ?? 'Jonotuslistalle liittyminen epäonnistui.')
+        setWaitlistError(res.status === 409 ? t('alreadyOnWaitlist') : t('waitlistError'))
       } else {
         setWaitlistDone(true)
       }
     } catch {
-      setWaitlistError('Yhteysvirhe. Tarkista verkkoyhteytesi.')
+      setWaitlistError(t('networkError'))
     } finally {
       setWaitlistPending(false)
     }
@@ -101,7 +107,7 @@ export default function TimeSlotPicker({
   return (
     <div className="bg-baby rounded-xl p-4 border border-rose/30 ml-9">
       <p className="text-xs font-medium text-mocha uppercase tracking-wide mb-3">
-        Valitse aika — {serviceName} ({duration} min)
+        {t('title', { service: serviceName, duration })}
       </p>
 
       <div className="flex gap-1.5 flex-wrap mb-4">
@@ -115,28 +121,28 @@ export default function TimeSlotPicker({
                 : 'bg-white text-mocha border border-card-border hover:border-rose'
             }`}
           >
-            {formatDayHelsinki(day)}
+            {formatDayHelsinki(day, locale)}
           </button>
         ))}
       </div>
 
       {isLoading ? (
-        <p className="text-xs text-mocha text-center py-3">Haetaan vapaita aikoja...</p>
+        <p className="text-xs text-mocha text-center py-3">{t('loading')}</p>
       ) : virhe ? (
         <p className="text-xs text-red-500 text-center py-3">{virhe}</p>
       ) : noSlots ? (
         <div className="space-y-3">
           <p className="text-xs text-mocha text-center py-1">
-            Ei vapaita aikoja tänä päivänä. Kokeile toista päivää.
+            {t('noSlots')}
           </p>
 
           {waitlistDone ? (
             <div className="bg-green-50 border border-green-100 rounded-lg px-3 py-2.5 text-center">
               <p className="text-xs font-medium text-green-700">
-                Sinut on lisätty jonotuslistalle!
+                {t('waitlistJoined')}
               </p>
               <p className="text-xs text-green-600 mt-0.5">
-                Saat sähköpostin kun aika vapautuu.
+                {t('waitlistJoinedHint')}
               </p>
             </div>
           ) : !showWaitlist ? (
@@ -145,19 +151,19 @@ export default function TimeSlotPicker({
               className="w-full py-2 text-xs font-medium text-rose-deep border border-rose/40
                          rounded-lg hover:bg-rose/10 transition-colors"
             >
-              Liity jonotuslistalle
+              {t('joinWaitlist')}
             </button>
           ) : (
             <form onSubmit={handleWaitlistSubmit} className="space-y-2">
               <p className="text-xs font-medium text-mocha">
-                Ilmoitamme kun aika vapautuu.
+                {t('waitlistIntro')}
               </p>
               <input
                 type="text"
                 required
                 value={waitlistName}
                 onChange={(e) => setWaitlistName(e.target.value)}
-                placeholder="Nimesi"
+                placeholder={t('namePlaceholder')}
                 className="w-full px-3 py-2 text-xs rounded-lg border border-card-border bg-white text-chocolate
                            placeholder-mocha/50 focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
               />
@@ -166,7 +172,7 @@ export default function TimeSlotPicker({
                 required
                 value={waitlistEmail}
                 onChange={(e) => setWaitlistEmail(e.target.value)}
-                placeholder="Sähköpostiosoitteesi"
+                placeholder={t('emailPlaceholder')}
                 className="w-full px-3 py-2 text-xs rounded-lg border border-card-border bg-white text-chocolate
                            placeholder-mocha/50 focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
               />
@@ -181,7 +187,7 @@ export default function TimeSlotPicker({
                              bg-chocolate hover:bg-chocolate/85
                              disabled:opacity-60 disabled:cursor-not-allowed transition-all"
                 >
-                  {waitlistPending ? 'Lisätään...' : 'Liity jonoon'}
+                  {waitlistPending ? t('joining') : t('join')}
                 </button>
                 <button
                   type="button"
@@ -189,7 +195,7 @@ export default function TimeSlotPicker({
                   className="px-3 py-2 text-xs text-mocha hover:text-chocolate rounded-lg
                              hover:bg-white transition-colors"
                 >
-                  Peruuta
+                  {tCommon('cancel')}
                 </button>
               </div>
             </form>
@@ -205,7 +211,7 @@ export default function TimeSlotPicker({
                          text-chocolate hover:bg-rose-deep hover:text-warm-white hover:border-rose-deep
                          transition-colors"
             >
-              {formatTimeHelsinki(slot)}
+              {formatTimeHelsinki(slot, locale)}
             </button>
           ))}
         </div>

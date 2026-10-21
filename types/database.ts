@@ -177,6 +177,7 @@ export type Database = {
           service_id: string
           customer_name: string
           customer_email: string
+          locale: string
           created_at: string
         }
         Insert: {
@@ -185,6 +186,7 @@ export type Database = {
           service_id: string
           customer_name: string
           customer_email: string
+          locale?: string
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['waitlist']['Insert']>

@@ -1,9 +1,13 @@
+import { getLocale, getTranslations } from 'next-intl/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { Link } from '@/i18n/navigation'
 import { formatDateTimeHelsinki } from '@/lib/dates'
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient()
+  const t = await getTranslations('DashboardHome')
+  const tCommon = await getTranslations('Common')
+  const locale = await getLocale()
 
   const {
     data: { user },
@@ -19,7 +23,7 @@ export default async function DashboardPage() {
   if (!business) {
     return (
       <p className="text-mocha">
-        Yritystietoja ei löydy. Ota yhteyttä tukeen.
+        {t('businessNotFound')}
       </p>
     )
   }
@@ -60,26 +64,26 @@ export default async function DashboardPage() {
 
       {/* Otsikko */}
       <div>
-        <h1 className="font-serif text-2xl font-semibold text-chocolate">Etusivu</h1>
-        <p className="text-mocha mt-1">Tervetuloa, {business.name}</p>
+        <h1 className="font-serif text-2xl font-semibold text-chocolate">{t('title')}</h1>
+        <p className="text-mocha mt-1">{t('welcome', { name: business.name })}</p>
       </div>
 
       {/* Tilastokortit */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
-          label="Aktiiviset palvelut"
+          label={t('activeServices')}
           value={activeServices ?? 0}
           linkHref="/dashboard/services"
-          linkLabel="Hallitse palveluita"
+          linkLabel={t('manageServices')}
         />
         <StatCard
-          label="Tulevat varaukset"
+          label={t('upcomingBookings')}
           value={upcomingBookings ?? 0}
           linkHref="/dashboard/bookings"
-          linkLabel="Katso kaikki"
+          linkLabel={t('seeAll')}
         />
         <div className="bg-white rounded-xl border border-card-border p-5 shadow-sm">
-          <p className="text-sm text-mocha">Asiakaslinkkisi</p>
+          <p className="text-sm text-mocha">{t('customerLink')}</p>
           <a
             href={`/${business.slug}`}
             target="_blank"
@@ -88,27 +92,27 @@ export default async function DashboardPage() {
           >
             /{business.slug}
           </a>
-          <p className="text-xs text-mocha/70 mt-1">Jaa asiakkaille</p>
+          <p className="text-xs text-mocha/70 mt-1">{t('shareWithClients')}</p>
         </div>
       </div>
 
       {/* Seuraavat varaukset */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-serif text-lg font-medium text-chocolate">Seuraavat varaukset</h2>
+          <h2 className="font-serif text-lg font-medium text-chocolate">{t('nextBookings')}</h2>
           <Link
             href="/dashboard/bookings"
             className="text-sm text-rose-deep hover:text-chocolate transition-colors"
           >
-            Kaikki varaukset
+            {t('allBookings')}
           </Link>
         </div>
 
         {!nextBookings || nextBookings.length === 0 ? (
           <div className="bg-white rounded-xl border border-card-border p-8 text-center shadow-sm">
-            <p className="text-mocha text-sm">Ei tulevia varauksia.</p>
+            <p className="text-mocha text-sm">{t('noUpcoming')}</p>
             <p className="text-mocha/70 text-xs mt-1">
-              Jaa asiakaslinkkisi niin varaukset alkavat kertyä!
+              {t('noUpcomingHint')}
             </p>
           </div>
         ) : (
@@ -129,11 +133,11 @@ export default async function DashboardPage() {
                       {booking.customer_name}
                     </p>
                     <p className="text-xs text-mocha mt-0.5">
-                      {serviceName ?? 'Palvelu'}
+                      {serviceName ?? tCommon('serviceFallback')}
                     </p>
                   </div>
                   <p className="text-sm text-mocha tabular-nums">
-                    {formatDateTimeHelsinki(booking.starts_at)}
+                    {formatDateTimeHelsinki(booking.starts_at, 'short', locale)}
                   </p>
                 </div>
               )

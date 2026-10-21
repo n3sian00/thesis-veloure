@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { redirect } from '@/i18n/navigation'
-import { getLocale } from 'next-intl/server'
-import { formatDateTimeHelsinki } from '@/lib/dates'
+import { getLocale, getTranslations } from 'next-intl/server'
+import { formatDateTimeHelsinki, toIntlLocale } from '@/lib/dates'
 import { cancelBookingAction } from '@/app/actions/bookings'
 import { removeWaitlistAction } from '@/app/actions/waitlist'
 import BookingsFilter from '@/components/dashboard/BookingsFilter'
@@ -15,11 +15,8 @@ const STATUS_STYLES: Record<string, string> = {
   completed: 'bg-cream text-mocha',
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  confirmed: 'Vahvistettu',
-  cancelled: 'Peruutettu',
-  completed: 'Toteutunut',
-}
+// Tunnetut tilat — näyttönimet tulevat käännöksistä (BookingStatus.<tila>)
+const KNOWN_STATUSES = ['confirmed', 'cancelled', 'completed']
 
 // Next.js 16: searchParams on Promise
 export default async function BookingsPage({
@@ -28,6 +25,9 @@ export default async function BookingsPage({
   searchParams: Promise<{ q?: string; status?: string }>
 }) {
   const { q, status } = await searchParams
+  const t = await getTranslations('BookingsPage')
+  const tStatus = await getTranslations('BookingStatus')
+  const tCommon = await getTranslations('Common')
 
   const supabase = await createSupabaseServerClient()
 
@@ -46,7 +46,7 @@ export default async function BookingsPage({
     .eq('user_id', user.id)
     .single()
 
-  if (!business) return <p className="text-mocha">Yritystietoja ei löydy.</p>
+  if (!business) return <p className="text-mocha">{tCommon('businessNotFound')}</p>
 
   // Rakennetaan kysely suodattimien perusteella
   let query = supabase
@@ -92,13 +92,13 @@ export default async function BookingsPage({
     <div className="space-y-6">
 
       <div>
-        <h1 className="font-serif text-2xl font-semibold text-chocolate">Varaukset</h1>
+        <h1 className="font-serif text-2xl font-semibold text-chocolate">{t('title')}</h1>
         <p className="text-mocha mt-1">
           {isFiltered
-            ? `${bookings?.length ?? 0} tulosta`
+            ? t('resultCount', { count: bookings?.length ?? 0 })
             : tulevat.length > 0
-            ? `${tulevat.length} tuleva varaus`
-            : 'Ei tulevia varauksia'}
+            ? t('upcomingCount', { count: tulevat.length })
+            : t('noUpcoming')}
         </p>
       </div>
 
@@ -110,26 +110,26 @@ export default async function BookingsPage({
       {isFiltered ? (
         /* Suodatettu: yksi litteä lista */
         <BookingSection
-          otsikko={`Hakutulokset${q ? ` — "${q}"` : ''}${status ? ` (${STATUS_LABELS[status] ?? status})` : ''}`}
+          otsikko={`${t('searchResults')}${q ? ` — "${q}"` : ''}${status ? ` (${KNOWN_STATUSES.includes(status) ? tStatus(status) : status})` : ''}`}
           bookings={bookings ?? []}
           businessId={business.id}
-          tyhjaViesti="Ei varauksia hakuehdoilla."
+          tyhjaViesti={t('noResults')}
           showCancel
         />
       ) : (
         /* Oletustila: tulevat + menneet */
         <>
           <BookingSection
-            otsikko="Tulevat varaukset"
+            otsikko={t('upcoming')}
             bookings={tulevat}
             businessId={business.id}
-            tyhjaViesti="Ei tulevia varauksia."
+            tyhjaViesti={t('noUpcomingList')}
             showCancel
           />
 
           {menneet.length > 0 && (
             <BookingSection
-              otsikko="Aiemmat varaukset"
+              otsikko={t('past')}
               bookings={menneet}
               businessId={business.id}
               tyhjaViesti=""
@@ -155,16 +155,20 @@ type WaitlistEntry = {
   services: { name: string } | { name: string }[] | null
 }
 
-function WaitlistSection({ waitlist }: { waitlist: WaitlistEntry[] }) {
+async function WaitlistSection({ waitlist }: { waitlist: WaitlistEntry[] }) {
+  const t = await getTranslations('BookingsPage')
+  const tCommon = await getTranslations('Common')
+  const locale = await getLocale()
+
   return (
     <div>
       <h2 className="text-sm font-medium text-mocha mb-2">
-        Jonotuslista{waitlist.length > 0 ? ` (${waitlist.length})` : ''}
+        {t('waitlist')}{waitlist.length > 0 ? ` (${waitlist.length})` : ''}
       </h2>
 
       {waitlist.length === 0 ? (
         <div className="bg-white rounded-xl border border-card-border p-6 text-center shadow-sm">
-          <p className="text-mocha text-sm">Ei jonottajia.</p>
+          <p className="text-mocha text-sm">{t('noWaitlist')}</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-card-border shadow-sm divide-y divide-card-border/60">
@@ -179,12 +183,12 @@ function WaitlistSection({ waitlist }: { waitlist: WaitlistEntry[] }) {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-chocolate">{entry.customer_name}</p>
                     <p className="text-xs text-mocha mt-0.5">
-                      {serviceName ?? 'Palvelu'} &middot; {entry.customer_email}
+                      {serviceName ?? tCommon('serviceFallback')} &middot; {entry.customer_email}
                     </p>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <p className="text-xs text-mocha tabular-nums whitespace-nowrap">
-                      {new Date(entry.created_at).toLocaleDateString('fi-FI', {
+                      {new Date(entry.created_at).toLocaleDateString(toIntlLocale(locale), {
                         day: 'numeric', month: 'numeric', year: 'numeric',
                         timeZone: 'Europe/Helsinki',
                       })}
@@ -196,7 +200,7 @@ function WaitlistSection({ waitlist }: { waitlist: WaitlistEntry[] }) {
                                    px-2.5 py-1 rounded-lg transition-colors border border-card-border
                                    hover:border-red-200 whitespace-nowrap"
                       >
-                        Poista
+                        {t('remove')}
                       </button>
                     </form>
                   </div>
@@ -223,7 +227,7 @@ type Booking = {
   services: { name: string } | { name: string }[] | null
 }
 
-function BookingSection({
+async function BookingSection({
   otsikko,
   bookings,
   businessId,
@@ -238,6 +242,11 @@ function BookingSection({
   dim?: boolean
   showCancel?: boolean
 }) {
+  const t = await getTranslations('BookingsPage')
+  const tStatus = await getTranslations('BookingStatus')
+  const tCommon = await getTranslations('Common')
+  const locale = await getLocale()
+
   return (
     <div>
       <h2 className={`text-sm font-medium mb-2 ${dim ? 'text-mocha/60' : 'text-mocha'}`}>
@@ -256,7 +265,9 @@ function BookingSection({
               : (booking.services as { name: string } | null)?.name
 
             const statusStyle = STATUS_STYLES[booking.status] ?? 'bg-cream text-mocha'
-            const statusLabel = STATUS_LABELS[booking.status] ?? booking.status
+            const statusLabel = KNOWN_STATUSES.includes(booking.status)
+              ? tStatus(booking.status)
+              : booking.status
 
             const durationMinutes = Math.round(
               (new Date(booking.ends_at).getTime() - new Date(booking.starts_at).getTime()) / 60000
@@ -278,7 +289,7 @@ function BookingSection({
                       </span>
                     </div>
                     <p className="text-xs text-mocha mt-0.5">
-                      {serviceName ?? 'Palvelu'} &middot; {booking.customer_email}
+                      {serviceName ?? tCommon('serviceFallback')} &middot; {booking.customer_email}
                       {booking.customer_phone && ` · ${booking.customer_phone}`}
                     </p>
                     {booking.customer_notes && (
@@ -290,7 +301,7 @@ function BookingSection({
 
                   <div className="flex items-center gap-3 shrink-0">
                     <p className="text-sm text-mocha tabular-nums whitespace-nowrap">
-                      {formatDateTimeHelsinki(booking.starts_at, 'long')}
+                      {formatDateTimeHelsinki(booking.starts_at, 'long', locale)}
                     </p>
 
                     {showCancel && booking.status === 'confirmed' && (
@@ -299,7 +310,7 @@ function BookingSection({
                           bookingId={booking.id}
                           businessId={businessId}
                           serviceId={booking.service_id}
-                          serviceName={serviceName ?? 'Palvelu'}
+                          serviceName={serviceName ?? tCommon('serviceFallback')}
                           durationMinutes={durationMinutes}
                           startsAt={booking.starts_at}
                           customerName={booking.customer_name}
@@ -315,7 +326,7 @@ function BookingSection({
                                        px-2.5 py-1 rounded-lg transition-colors border border-red-200
                                        hover:border-red-300 whitespace-nowrap"
                           >
-                            Peruuta
+                            {t('cancelBooking')}
                           </button>
                         </form>
                       </>

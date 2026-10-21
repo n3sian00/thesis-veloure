@@ -1,5 +1,5 @@
 import { redirect } from '@/i18n/navigation'
-import { getLocale } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import CalendarView from '@/components/dashboard/CalendarView'
 
@@ -23,17 +23,19 @@ export default async function CalendarPage() {
     .eq('user_id', user.id)
     .single()
 
+  const t = await getTranslations('Calendar')
+  const tCommon = await getTranslations('Common')
+
   if (!business) {
-    return <p className="text-mocha">Yritystietoja ei löydy.</p>
+    return <p className="text-mocha">{tCommon('businessNotFound')}</p>
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-2xl font-semibold text-chocolate">Kalenteri</h1>
+        <h1 className="font-serif text-2xl font-semibold text-chocolate">{t('title')}</h1>
         <p className="text-mocha mt-1">
-          Hallitse työpäiviäsi. Lisää aikaikkunat päiville jolloin otat varauksia,
-          ja blokkaa yksittäiset ajat esim. tauoille tai muille menoille.
+          {t('subtitle')}
         </p>
       </div>
       <CalendarView businessId={business.id} />

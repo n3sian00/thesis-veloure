@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback, useTransition } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import { addSlotAction, deleteSlotAction, blockSlotAction, unblockSlotAction } from '@/app/actions/slots'
-import { toDateStrHelsinki, todayHelsinki, formatTimeHelsinki } from '@/lib/dates'
+import { toDateStrHelsinki, todayHelsinki, formatTimeHelsinki, toIntlLocale } from '@/lib/dates'
 
 // --- Tyypit ---
 
@@ -55,8 +56,8 @@ function toMonthStr(year: number, month: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}`
 }
 
-function formatDayHeading(dateStr: string): string {
-  return new Date(dateStr + 'T12:00:00Z').toLocaleDateString('fi-FI', {
+function formatDayHeading(dateStr: string, locale: string): string {
+  return new Date(dateStr + 'T12:00:00Z').toLocaleDateString(toIntlLocale(locale), {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     timeZone: 'UTC',
   })
@@ -65,11 +66,22 @@ function formatDayHeading(dateStr: string): string {
 // Varausten kellonajat näytetään aina Suomen ajassa (ei selaimen paikallisessa ajassa)
 const formatBookingTime = formatTimeHelsinki
 
-const MONTH_NAMES = [
-  'Tammikuu','Helmikuu','Maaliskuu','Huhtikuu','Toukokuu','Kesäkuu',
-  'Heinäkuu','Elokuu','Syyskuu','Lokakuu','Marraskuu','Joulukuu',
-]
-const DAY_NAMES = ['Ma','Ti','Ke','To','Pe','La','Su']
+// Kuukauden nimi + vuosi kielen mukaan: "lokakuu 2026" / "October 2026"
+function formatMonthHeading(year: number, month: number, locale: string): string {
+  return new Date(Date.UTC(year, month, 1)).toLocaleDateString(toIntlLocale(locale), {
+    month: 'long', year: 'numeric', timeZone: 'UTC',
+  })
+}
+
+// Viikonpäivien lyhyet nimet maanantaista alkaen: "ma"… / "Mon"…
+// 2024-01-01 oli maanantai, joten sitä käytetään ankkurina.
+function getDayNames(locale: string): string[] {
+  return Array.from({ length: 7 }, (_, i) =>
+    new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(toIntlLocale(locale), {
+      weekday: 'short', timeZone: 'UTC',
+    })
+  )
+}
 
 // --- Komponentti ---
 
@@ -78,6 +90,9 @@ interface Props {
 }
 
 export default function CalendarView({ businessId: _businessId }: Props) {
+  const t = useTranslations('Calendar')
+  const tCommon = useTranslations('Common')
+  const locale = useLocale()
   // Käytetään Helsingin aikaa — new Date() + toISOString() antaisi UTC-päivän
   const todayStr = todayHelsinki()
   const todayDate = new Date(todayStr + 'T12:00:00Z') // puolipäivä UTC ankkurina
@@ -222,19 +237,19 @@ export default function CalendarView({ businessId: _businessId }: Props) {
           <button
             onClick={prevMonth}
             className="p-1.5 rounded-lg hover:bg-cream transition-colors text-mocha"
-            aria-label="Edellinen kuukausi"
+            aria-label={t('prevMonth')}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <span className="text-sm font-semibold text-chocolate">
-            {MONTH_NAMES[month]} {year}
+          <span className="text-sm font-semibold text-chocolate capitalize">
+            {formatMonthHeading(year, month, locale)}
           </span>
           <button
             onClick={nextMonth}
             className="p-1.5 rounded-lg hover:bg-cream transition-colors text-mocha"
-            aria-label="Seuraava kuukausi"
+            aria-label={t('nextMonth')}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -244,8 +259,8 @@ export default function CalendarView({ businessId: _businessId }: Props) {
 
         {/* Viikonpäivien otsikkorivi */}
         <div className="grid grid-cols-7 mb-1">
-          {DAY_NAMES.map(d => (
-            <div key={d} className="text-center text-xs font-medium text-mocha/60 py-1">
+          {getDayNames(locale).map(d => (
+            <div key={d} className="text-center text-xs font-medium text-mocha/60 py-1 capitalize">
               {d}
             </div>
           ))}
@@ -300,15 +315,15 @@ export default function CalendarView({ businessId: _businessId }: Props) {
         <div className="flex items-center gap-3 mt-4 pt-4 border-t border-card-border/60 flex-wrap">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-green-400" />
-            <span className="text-xs text-mocha/70">Aikaikkunoita</span>
+            <span className="text-xs text-mocha/70">{t('legendWindows')}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-orange-400" />
-            <span className="text-xs text-mocha/70">Blokattuja</span>
+            <span className="text-xs text-mocha/70">{t('legendBlocked')}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-rose-deep" />
-            <span className="text-xs text-mocha/70">Valittu</span>
+            <span className="text-xs text-mocha/70">{t('legendSelected')}</span>
           </div>
         </div>
       </div>
@@ -317,7 +332,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
       <div className="flex-1 min-w-0">
         {!selectedDate ? (
           <div className="bg-white rounded-xl border border-card-border shadow-sm p-8 text-center">
-            <p className="text-mocha text-sm">Valitse päivä kalenterista</p>
+            <p className="text-mocha text-sm">{t('selectDay')}</p>
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-card-border shadow-sm divide-y divide-card-border/60">
@@ -325,20 +340,20 @@ export default function CalendarView({ businessId: _businessId }: Props) {
             {/* Päivän otsikko */}
             <div className="px-5 py-4">
               <h2 className="text-base font-semibold text-chocolate capitalize">
-                {formatDayHeading(selectedDate)}
+                {formatDayHeading(selectedDate, locale)}
               </h2>
             </div>
 
             {isLoadingDay ? (
               <div className="px-5 py-8 text-center text-sm text-mocha">
-                Ladataan...
+                {t('loading')}
               </div>
             ) : (
               <>
                 {/* Aikaikkunat */}
                 <div className="px-5 py-4">
                   <h3 className="text-xs font-medium text-mocha uppercase tracking-wide mb-3">
-                    Aikaikkunat
+                    {t('windows')}
                   </h3>
 
                   {deleteError && (
@@ -349,7 +364,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
 
                   {!dayDetail?.windows.length ? (
                     <p className="text-sm text-mocha">
-                      Ei aikaikkunoita — lisää alla.
+                      {t('noWindows')}
                     </p>
                   ) : (
                     <div className="space-y-2">
@@ -363,7 +378,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                           </span>
                           {w.has_bookings ? (
                             <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-                              Varauksilla
+                              {t('hasBookings')}
                             </span>
                           ) : (
                             <button
@@ -372,7 +387,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                               className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-0.5 rounded-lg
                                          transition-colors disabled:opacity-50"
                             >
-                              Poista
+                              {t('delete')}
                             </button>
                           )}
                         </div>
@@ -384,10 +399,10 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                 {/* Varaukset */}
                 <div className="px-5 py-4">
                   <h3 className="text-xs font-medium text-mocha uppercase tracking-wide mb-3">
-                    Varaukset
+                    {t('bookings')}
                   </h3>
                   {!dayDetail?.bookings.length ? (
-                    <p className="text-sm text-mocha">Ei varauksia.</p>
+                    <p className="text-sm text-mocha">{t('noBookings')}</p>
                   ) : (
                     <div className="space-y-2">
                       {dayDetail.bookings.map((b) => (
@@ -396,7 +411,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                           className="flex items-center gap-3 py-2 px-3 rounded-lg bg-green-50"
                         >
                           <span className="text-sm font-semibold text-chocolate tabular-nums w-10 shrink-0">
-                            {formatBookingTime(b.starts_at)}
+                            {formatBookingTime(b.starts_at, locale)}
                           </span>
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-chocolate truncate">
@@ -415,7 +430,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                 {/* Blokatut ajat */}
                 <div className="px-5 py-4">
                   <h3 className="text-xs font-medium text-mocha uppercase tracking-wide mb-3">
-                    Blokatut ajat
+                    {t('blocked')}
                   </h3>
 
                   {unblockError && (
@@ -440,13 +455,13 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                             className="text-xs text-orange-600 hover:text-orange-800 hover:bg-orange-100 px-2 py-0.5 rounded-lg
                                        transition-colors disabled:opacity-50"
                           >
-                            Poista blokkaus
+                            {t('unblock')}
                           </button>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-mocha mb-3">Ei blokattuja aikoja.</p>
+                    <p className="text-sm text-mocha mb-3">{t('noBlocked')}</p>
                   )}
 
                   {blockError && (
@@ -457,7 +472,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
 
                   <div className="flex items-end gap-3 flex-wrap">
                     <div>
-                      <label className="block text-xs text-mocha mb-1">Blokkaa kello</label>
+                      <label className="block text-xs text-mocha mb-1">{t('blockAt')}</label>
                       <input
                         type="time"
                         value={blockTime}
@@ -476,7 +491,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                                  focus:outline-none focus:ring-2 focus:ring-orange-300
                                  disabled:opacity-60 disabled:cursor-not-allowed transition-all"
                     >
-                      {isPending ? 'Tallennetaan...' : 'Blokkaa'}
+                      {isPending ? tCommon('saving') : t('block')}
                     </button>
                   </div>
                 </div>
@@ -484,7 +499,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                 {/* Lisää aikaikkuna */}
                 <div className="px-5 py-4">
                   <h3 className="text-xs font-medium text-mocha uppercase tracking-wide mb-3">
-                    Lisää aikaikkuna
+                    {t('addWindow')}
                   </h3>
 
                   {addError && (
@@ -495,7 +510,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
 
                   <div className="flex items-end gap-3 flex-wrap">
                     <div>
-                      <label className="block text-xs text-mocha mb-1">Alku</label>
+                      <label className="block text-xs text-mocha mb-1">{t('start')}</label>
                       <input
                         type="time"
                         value={addStart}
@@ -505,7 +520,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-mocha mb-1">Loppu</label>
+                      <label className="block text-xs text-mocha mb-1">{t('end')}</label>
                       <input
                         type="time"
                         value={addEnd}
@@ -522,7 +537,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                                  focus:outline-none focus:ring-2 focus:ring-rose
                                  disabled:opacity-60 disabled:cursor-not-allowed transition-all"
                     >
-                      {isPending ? 'Lisätään...' : 'Lisää'}
+                      {isPending ? t('adding') : t('add')}
                     </button>
                   </div>
                 </div>

@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { verifyCancelToken } from '@/lib/tokens'
+import { formatDateLongHelsinki, formatTimeHelsinki } from '@/lib/dates'
 import { cancelCustomerBookingAction } from '@/app/actions/cancel-customer'
 
 export default async function CancelPage({
@@ -15,6 +17,10 @@ export default async function CancelPage({
   const valid = await verifyCancelToken(bookingId, token)
   if (!valid) notFound()
 
+  const t = await getTranslations('CancelPage')
+  const tCommon = await getTranslations('Common')
+  const locale = await getLocale()
+
   if (cancelled === '1') {
     return (
       <main className="min-h-screen bg-warm-white flex items-center justify-center p-4">
@@ -24,8 +30,8 @@ export default async function CancelPage({
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-lg font-semibold text-chocolate mb-2">Varaus peruutettu</p>
-          <p className="text-sm text-mocha">Saat vahvistuksen sähköpostiisi.</p>
+          <p className="text-lg font-semibold text-chocolate mb-2">{t('cancelledTitle')}</p>
+          <p className="text-sm text-mocha">{t('cancelledBody')}</p>
         </div>
       </main>
     )
@@ -46,34 +52,29 @@ export default async function CancelPage({
   if (!booking) notFound()
 
   const serviceName = Array.isArray(booking.services)
-    ? (booking.services[0]?.name ?? 'Palvelu')
-    : ((booking.services as { name: string } | null)?.name ?? 'Palvelu')
+    ? (booking.services[0]?.name ?? tCommon('serviceFallback'))
+    : ((booking.services as { name: string } | null)?.name ?? tCommon('serviceFallback'))
 
   const businessInfo = Array.isArray(booking.businesses)
     ? booking.businesses[0]
     : (booking.businesses as { name: string; cancellation_hours: number } | null)
 
-  const businessName       = businessInfo?.name ?? 'Palveluntarjoaja'
+  const businessName       = businessInfo?.name ?? t('businessFallback')
   const cancellationHours  = businessInfo?.cancellation_hours ?? 24
 
   const startsAt   = new Date(booking.starts_at)
   const hoursUntil = (startsAt.getTime() - Date.now()) / 3_600_000
   const canCancel  = booking.status === 'confirmed' && hoursUntil >= cancellationHours
 
-  const dateLabel = startsAt.toLocaleDateString('fi-FI', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-    timeZone: 'Europe/Helsinki',
-  })
-  const timeLabel = startsAt.toLocaleTimeString('fi-FI', {
-    hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Helsinki',
-  })
+  const dateLabel = formatDateLongHelsinki(booking.starts_at, locale)
+  const timeLabel = formatTimeHelsinki(booking.starts_at, locale)
 
   if (booking.status === 'cancelled') {
     return (
       <main className="min-h-screen bg-warm-white flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl border border-card-border shadow-sm p-8 max-w-md w-full text-center">
-          <p className="text-lg font-semibold text-chocolate mb-2">Varaus on jo peruutettu</p>
-          <p className="text-sm text-mocha">Tämä varaus on aiemmin peruutettu.</p>
+          <p className="text-lg font-semibold text-chocolate mb-2">{t('alreadyCancelledTitle')}</p>
+          <p className="text-sm text-mocha">{t('alreadyCancelledBody')}</p>
         </div>
       </main>
     )
@@ -82,12 +83,12 @@ export default async function CancelPage({
   return (
     <main className="min-h-screen bg-warm-white flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl border border-card-border shadow-sm p-8 max-w-md w-full">
-        <h1 className="font-serif text-xl font-semibold text-chocolate mb-1">Peru varaus</h1>
+        <h1 className="font-serif text-xl font-semibold text-chocolate mb-1">{t('title')}</h1>
         <p className="text-sm text-mocha mb-6">{businessName}</p>
 
         <div className="bg-cream rounded-xl p-4 mb-6 space-y-1">
           <p className="text-sm font-medium text-chocolate">{serviceName}</p>
-          <p className="text-sm text-mocha">{dateLabel} klo {timeLabel}</p>
+          <p className="text-sm text-mocha">{t('dateTime', { date: dateLabel, time: timeLabel })}</p>
           <p className="text-xs text-mocha/70">{booking.customer_name}</p>
         </div>
 
@@ -102,19 +103,18 @@ export default async function CancelPage({
                            bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2
                            focus:ring-red-300 transition-colors"
               >
-                Peru varaus
+                {t('submit')}
               </button>
             </form>
             <p className="text-xs text-mocha/70 text-center mt-3">
-              Peruuttaminen on mahdollista {cancellationHours}h ennen varausta.
+              {t('policy', { hours: cancellationHours })}
             </p>
           </>
         ) : (
           <div className="text-center space-y-1">
-            <p className="text-sm text-chocolate">Varausta ei voi enää peruuttaa.</p>
+            <p className="text-sm text-chocolate">{t('tooLateTitle')}</p>
             <p className="text-xs text-mocha/70">
-              Peruutus onnistuu viimeistään {cancellationHours}h ennen varausta.
-              Ota yhteyttä suoraan {businessName}:iin.
+              {t('tooLateBody', { hours: cancellationHours, businessName })}
             </p>
           </div>
         )}

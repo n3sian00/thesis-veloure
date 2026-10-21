@@ -2,6 +2,7 @@
 
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { getTranslations } from 'next-intl/server'
 
 // Apufunktio: hakee autentikoidun käyttäjän yrityksen ID:n
 async function getOwnBusiness() {
@@ -26,23 +27,24 @@ export async function createServiceAction(
   _prevState: string | null,
   formData: FormData
 ): Promise<string | null> {
+  const t = await getTranslations('Errors')
   const name = (formData.get('name') as string)?.trim()
   const durationRaw = formData.get('duration_minutes') as string
   const priceRaw = formData.get('price') as string
   const description = (formData.get('description') as string)?.trim() || null
   const category = (formData.get('category') as string)?.trim() || null
 
-  if (!name) return 'Palvelun nimi on pakollinen.'
+  if (!name) return t('serviceNameRequired')
 
   const duration_minutes = parseInt(durationRaw, 10)
   const price = parseFloat(priceRaw.replace(',', '.')) // salli sekä piste että pilkku
 
   if (isNaN(duration_minutes) || duration_minutes < 1)
-    return 'Kesto tulee olla vähintään 1 minuutti.'
-  if (isNaN(price) || price < 0) return 'Hinta ei voi olla negatiivinen.'
+    return t('durationTooShort')
+  if (isNaN(price) || price < 0) return t('priceNegative')
 
   const { supabase, businessId } = await getOwnBusiness()
-  if (!businessId) return 'Kirjaudu ensin sisään.'
+  if (!businessId) return t('loginRequired')
 
   const { error } = await supabase.from('services').insert({
     business_id: businessId,
@@ -53,7 +55,7 @@ export async function createServiceAction(
     price,
   })
 
-  if (error) return 'Palvelun lisääminen epäonnistui. Yritä uudelleen.'
+  if (error) return t('serviceAddFailed')
 
   revalidatePath('/dashboard/services')
   return null
@@ -64,6 +66,7 @@ export async function updateServiceAction(
   _prevState: string | null,
   formData: FormData
 ): Promise<string | null> {
+  const t = await getTranslations('Errors')
   const id = (formData.get('id') as string)?.trim()
   const name = (formData.get('name') as string)?.trim()
   const durationRaw = formData.get('duration_minutes') as string
@@ -71,18 +74,18 @@ export async function updateServiceAction(
   const description = (formData.get('description') as string)?.trim() || null
   const category = (formData.get('category') as string)?.trim() || null
 
-  if (!id) return 'Palvelun ID puuttuu.'
-  if (!name) return 'Palvelun nimi on pakollinen.'
+  if (!id) return t('serviceIdMissing')
+  if (!name) return t('serviceNameRequired')
 
   const duration_minutes = parseInt(durationRaw, 10)
   const price = parseFloat(priceRaw.replace(',', '.'))
 
   if (isNaN(duration_minutes) || duration_minutes < 1)
-    return 'Kesto tulee olla vähintään 1 minuutti.'
-  if (isNaN(price) || price < 0) return 'Hinta ei voi olla negatiivinen.'
+    return t('durationTooShort')
+  if (isNaN(price) || price < 0) return t('priceNegative')
 
   const { supabase, businessId } = await getOwnBusiness()
-  if (!businessId) return 'Kirjaudu ensin sisään.'
+  if (!businessId) return t('loginRequired')
 
   const { error } = await supabase
     .from('services')
@@ -90,7 +93,7 @@ export async function updateServiceAction(
     .eq('id', id)
     .eq('business_id', businessId)
 
-  if (error) return 'Palvelun tallennus epäonnistui. Yritä uudelleen.'
+  if (error) return t('serviceSaveFailed')
 
   revalidatePath('/dashboard/services')
   return null
@@ -98,9 +101,10 @@ export async function updateServiceAction(
 
 // Poista palvelu (business_id-tarkistus RLS:n lisäksi)
 export async function deleteServiceAction(formData: FormData): Promise<string | null> {
+  const t = await getTranslations('Errors')
   const id = formData.get('id') as string
   const { supabase, businessId } = await getOwnBusiness()
-  if (!businessId) return 'Kirjaudu ensin sisään.'
+  if (!businessId) return t('loginRequired')
 
   const { error } = await supabase
     .from('services')
@@ -110,9 +114,9 @@ export async function deleteServiceAction(formData: FormData): Promise<string | 
 
   if (error) {
     if (error.code === '23503') {
-      return 'Palvelua ei voi poistaa, koska siihen liittyy varauksia. Voit piilottaa sen asiakkailta Piilota-painikkeella.'
+      return t('serviceHasBookings')
     }
-    return 'Palvelun poistaminen epäonnistui. Yritä uudelleen.'
+    return t('serviceDeleteFailed')
   }
 
   revalidatePath('/dashboard/services')
