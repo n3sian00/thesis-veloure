@@ -117,7 +117,7 @@ export default function TimeSlotPicker({
             onClick={() => setSelectedDay(day)}
             className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               day === selectedDay
-                ? 'bg-rose-deep text-warm-white'
+                ? 'bg-rose-ink text-warm-white'
                 : 'bg-white text-mocha border border-card-border hover:border-rose'
             }`}
           >
@@ -129,7 +129,7 @@ export default function TimeSlotPicker({
       {isLoading ? (
         <p className="text-xs text-mocha text-center py-3">{t('loading')}</p>
       ) : virhe ? (
-        <p className="text-xs text-red-500 text-center py-3">{virhe}</p>
+        <p className="text-xs text-red-700 text-center py-3">{virhe}</p>
       ) : noSlots ? (
         <div className="space-y-3">
           <p className="text-xs text-mocha text-center py-1">
@@ -138,17 +138,17 @@ export default function TimeSlotPicker({
 
           {waitlistDone ? (
             <div className="bg-green-50 border border-green-100 rounded-lg px-3 py-2.5 text-center">
-              <p className="text-xs font-medium text-green-700">
+              <p className="text-xs font-medium text-green-800">
                 {t('waitlistJoined')}
               </p>
-              <p className="text-xs text-green-600 mt-0.5">
+              <p className="text-xs text-green-800 mt-0.5">
                 {t('waitlistJoinedHint')}
               </p>
             </div>
           ) : !showWaitlist ? (
             <button
               onClick={() => setShowWaitlist(true)}
-              className="w-full py-2 text-xs font-medium text-rose-deep border border-rose/40
+              className="w-full py-2 text-xs font-medium text-rose-ink border border-rose/40
                          rounded-lg hover:bg-rose/10 transition-colors"
             >
               {t('joinWaitlist')}
@@ -165,7 +165,7 @@ export default function TimeSlotPicker({
                 onChange={(e) => setWaitlistName(e.target.value)}
                 placeholder={t('namePlaceholder')}
                 className="w-full px-3 py-2 text-xs rounded-lg border border-card-border bg-white text-chocolate
-                           placeholder-mocha/50 focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
+                           placeholder-mocha focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
               />
               <input
                 type="email"
@@ -174,10 +174,10 @@ export default function TimeSlotPicker({
                 onChange={(e) => setWaitlistEmail(e.target.value)}
                 placeholder={t('emailPlaceholder')}
                 className="w-full px-3 py-2 text-xs rounded-lg border border-card-border bg-white text-chocolate
-                           placeholder-mocha/50 focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
+                           placeholder-mocha focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
               />
               {waitlistError && (
-                <p className="text-xs text-red-600 bg-red-50 rounded-lg px-2 py-1.5">{waitlistError}</p>
+                <p className="text-xs text-red-700 bg-red-50 rounded-lg px-2 py-1.5">{waitlistError}</p>
               )}
               <div className="flex gap-2">
                 <button
@@ -208,7 +208,7 @@ export default function TimeSlotPicker({
               key={slot}
               onClick={() => handleSlotClick(slot)}
               className="py-2 rounded-lg text-xs font-medium bg-white border border-card-border
-                         text-chocolate hover:bg-rose-deep hover:text-warm-white hover:border-rose-deep
+                         text-chocolate hover:bg-rose-ink hover:text-warm-white hover:border-rose-ink
                          transition-colors"
             >
               {formatTimeHelsinki(slot, locale)}

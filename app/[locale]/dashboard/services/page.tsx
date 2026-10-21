@@ -86,7 +86,6 @@ export default async function ServicesPage() {
               otsikko={t('hidden')}
               services={eiAktiiviset}
               existingCategories={existingCategories}
-              dim
             />
           )}
         </div>
@@ -100,16 +99,14 @@ function ServiceGroup({
   otsikko,
   services,
   existingCategories,
-  dim = false,
 }: {
   otsikko: string
   services: Service[]
   existingCategories: string[]
-  dim?: boolean
 }) {
   return (
     <div>
-      <h2 className={`text-sm font-medium mb-2 ${dim ? 'text-mocha/60' : 'text-mocha'}`}>
+      <h2 className="text-sm font-medium mb-2 text-mocha">
         {otsikko} ({services.length})
       </h2>
       <div className="bg-white rounded-xl border border-card-border shadow-sm divide-y divide-card-border/60">

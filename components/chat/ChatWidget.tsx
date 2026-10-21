@@ -360,7 +360,7 @@ export default function ChatWidget({ business, services }: Props) {
               </div>
               <button
                 onClick={() => setDirectMode(false)}
-                className="text-sm text-rose-deep hover:underline"
+                className="text-sm text-rose-ink hover:underline"
               >
                 {t('backToChat')}
               </button>
@@ -388,12 +388,12 @@ export default function ChatWidget({ business, services }: Props) {
                                      hover:border-rose hover:bg-cream transition-colors text-left group"
                         >
                           <div>
-                            <p className="text-sm font-medium text-chocolate group-hover:text-rose-deep">
+                            <p className="text-sm font-medium text-chocolate group-hover:text-rose-ink">
                               {s.name}
                             </p>
                             <p className="text-xs text-mocha mt-0.5">{s.duration_minutes} min</p>
                           </div>
-                          <span className="text-sm font-semibold text-rose-deep shrink-0 ml-3">
+                          <span className="text-sm font-semibold text-rose-ink shrink-0 ml-3">
                             {formatPrice(s.price, locale)}
                           </span>
                         </button>
@@ -458,7 +458,7 @@ export default function ChatWidget({ business, services }: Props) {
                       <button
                         key={service.id}
                         onClick={() => sendMessage(t('quickReply', { service: service.name }))}
-                        className="text-xs px-3 py-1.5 rounded-full border border-rose/40 text-rose-deep bg-baby
+                        className="text-xs px-3 py-1.5 rounded-full border border-rose/40 text-rose-ink bg-baby
                                    hover:bg-rose/20 transition-colors"
                       >
                         {service.name} — {formatPrice(service.price, locale)}
@@ -482,7 +482,7 @@ export default function ChatWidget({ business, services }: Props) {
                   {[0, 150, 300].map((delay) => (
                     <span
                       key={delay}
-                      className="w-1.5 h-1.5 bg-rose-deep rounded-full animate-bounce"
+                      className="w-1.5 h-1.5 bg-rose-ink rounded-full animate-bounce"
                       style={{ animationDelay: `${delay}ms` }}
                     />
                   ))}
@@ -552,7 +552,7 @@ export default function ChatWidget({ business, services }: Props) {
                 rows={1}
                 disabled={isStreaming}
                 className="flex-1 resize-none px-3 py-2 text-sm rounded-xl border border-card-border text-chocolate
-                           placeholder-mocha/50 focus:outline-none focus:ring-2 focus:ring-rose
+                           placeholder-mocha focus:outline-none focus:ring-2 focus:ring-rose
                            focus:border-transparent disabled:opacity-60 transition-shadow
                            max-h-28 overflow-y-auto"
               />
@@ -570,7 +570,7 @@ export default function ChatWidget({ business, services }: Props) {
                 </svg>
               </button>
             </div>
-            <p className="text-center text-xs text-mocha/50 mt-2">
+            <p className="text-center text-xs text-mocha mt-2">
               {t('inputHint')}
             </p>
           </div>

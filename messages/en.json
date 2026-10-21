@@ -1,8 +1,6 @@
 {
   "Navbar": {
     "features": "Features",
-    "pricing": "Pricing",
-    "contact": "Contact",
     "cta": "Get started"
   },
   "LanguageSwitcher": {
@@ -112,14 +110,13 @@
     "chatInputPlaceholder": "Type a message…"
   },
   "CTABanner": {
-    "title": "Start your journey today",
-    "subtitle": "Try it free for 14 days. No credit card required.",
+    "title": "Try Veloure free for 14 days",
+    "subtitle": "No credit card needed — setup takes minutes.",
     "cta": "Sign up now"
   },
   "Footer": {
     "copyright": "© 2026 Veloure. All rights reserved.",
-    "login": "Log in",
-    "register": "Sign up"
+    "login": "Log in"
   },
   "Metadata": {
     "title": "Veloure — Your smart client guidance",
@@ -437,5 +434,9 @@
     "reminderSubject": "Reminder: your appointment tomorrow — {service} @ {business}",
     "reminderIntro": "just a reminder: you have an appointment tomorrow!",
     "dateTime": "{date} at {time}"
+  },
+  "Anchors": {
+    "features": "features",
+    "howItWorks": "how-it-works"
   }
 }

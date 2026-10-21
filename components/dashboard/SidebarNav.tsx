@@ -93,11 +93,11 @@ export default function SidebarNav({ business }: Props) {
               href={href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-baby text-rose-deep'
+                  ? 'bg-baby text-rose-ink'
                   : 'text-mocha hover:bg-cream hover:text-chocolate'
               }`}
             >
-              <span className={isActive ? 'text-rose-deep' : 'text-mocha/60'}>
+              <span className={isActive ? 'text-rose-ink' : 'text-mocha'}>
                 {icon}
               </span>
               {t(label)}
@@ -115,7 +115,7 @@ export default function SidebarNav({ business }: Props) {
               href={`/${business.slug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-rose-deep font-medium hover:underline truncate block"
+              className="text-xs text-rose-ink font-medium hover:underline truncate block"
             >
               /{business.slug}
             </a>
@@ -127,7 +127,7 @@ export default function SidebarNav({ business }: Props) {
             type="submit"
             className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-mocha hover:bg-cream hover:text-chocolate transition-colors"
           >
-            <svg className="w-4 h-4 text-mocha/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-4 h-4 text-mocha" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
             {t('logout')}

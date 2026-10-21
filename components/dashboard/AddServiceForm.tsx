@@ -43,7 +43,7 @@ export default function AddServiceForm({ existingCategories }: Props) {
             type="text"
             required
             placeholder={t('namePlaceholder')}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha/50
+            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha
                        focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
           />
         </div>
@@ -61,7 +61,7 @@ export default function AddServiceForm({ existingCategories }: Props) {
             min={5}
             step={5}
             placeholder="60"
-            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha/50
+            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha
                        focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
           />
         </div>
@@ -79,7 +79,7 @@ export default function AddServiceForm({ existingCategories }: Props) {
             min={0}
             step={0.5}
             placeholder="45"
-            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha/50
+            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha
                        focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
           />
         </div>
@@ -100,14 +100,14 @@ export default function AddServiceForm({ existingCategories }: Props) {
           name="description"
           rows={2}
           placeholder={t('notesPlaceholder')}
-          className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha/50 resize-none
+          className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha resize-none
                      focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
         />
       </div>
 
       {/* Virheilmoitus */}
       {virhe && (
-        <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mt-3">
+        <p className="text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2 mt-3">
           {virhe}
         </p>
       )}

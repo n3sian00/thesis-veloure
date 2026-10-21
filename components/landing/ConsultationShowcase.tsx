@@ -8,12 +8,12 @@ export default async function ConsultationShowcase() {
   const t = await getTranslations('ConsultationShowcase')
 
   return (
-    <section className="py-24 md:py-32 px-6 bg-transparent">
+    <section className="py-14 md:py-16 px-6 bg-transparent">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-16 items-center">
 
         {/* --- Vasen: teksti --- */}
         <div>
-          <div className="inline-flex items-center px-4 py-1.5 mb-6 rounded-full border border-rose-deep/40 bg-baby/30 text-rose-deep text-xs font-medium tracking-widest uppercase">
+          <div className="inline-flex items-center px-4 py-1.5 mb-6 rounded-full border border-rose-deep/40 bg-white/70 text-rose-ink text-xs font-medium tracking-widest uppercase">
             {t('badge')}
           </div>
 
@@ -28,7 +28,7 @@ export default async function ConsultationShowcase() {
           <ul className="space-y-4">
             {VAKUUTUS_AVAIMET.map((avain) => (
               <li key={avain} className="flex items-start gap-3">
-                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-rose-deep shrink-0" aria-hidden />
+                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-rose-ink shrink-0" aria-hidden />
                 <span className="text-chocolate">{t(`bullets.${avain}`)}</span>
               </li>
             ))}
@@ -53,7 +53,7 @@ export default async function ConsultationShowcase() {
           <div className="px-5 py-5 space-y-3">
             <div className="bg-cream text-chocolate rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed max-w-[85%]">
               {t('chatMessage1Prefix')}{' '}
-              <em className="italic font-serif text-rose-deep">{t('chatMessage1Emphasis')}</em>.
+              <em className="italic font-serif text-rose-ink">{t('chatMessage1Emphasis')}</em>.
             </div>
 
             <div className="bg-baby text-chocolate rounded-2xl rounded-br-sm px-4 py-3 text-sm leading-relaxed max-w-[85%] ml-auto">
@@ -62,7 +62,7 @@ export default async function ConsultationShowcase() {
 
             <div className="bg-cream text-chocolate rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed max-w-[85%]">
               {t('chatMessage3Prefix')}{' '}
-              <em className="italic font-serif text-rose-deep">{t('chatMessage3Emphasis')}</em>.
+              <em className="italic font-serif text-rose-ink">{t('chatMessage3Emphasis')}</em>.
               {' '}{t('chatMessage3Suffix')}
             </div>
 
@@ -71,7 +71,7 @@ export default async function ConsultationShowcase() {
               {[0, 150, 300].map((delay) => (
                 <span
                   key={delay}
-                  className="w-1.5 h-1.5 bg-rose-deep rounded-full animate-bounce"
+                  className="w-1.5 h-1.5 bg-rose-ink rounded-full animate-bounce"
                   style={{ animationDelay: `${delay}ms` }}
                 />
               ))}
@@ -82,7 +82,7 @@ export default async function ConsultationShowcase() {
               {PIKAVASTAUS_AVAIMET.map((avain) => (
                 <div
                   key={avain}
-                  className="text-xs px-3 py-1.5 rounded-full border border-rose/40 text-rose-deep bg-baby/20"
+                  className="text-xs px-3 py-1.5 rounded-full border border-rose/40 text-rose-ink bg-baby/20"
                 >
                   {t(`quickReplies.${avain}`)}
                 </div>
@@ -92,7 +92,7 @@ export default async function ConsultationShowcase() {
 
           {/* Syötealue (vain ulkoasu) */}
           <div className="flex items-center gap-2 px-4 py-3 border-t border-card-border">
-            <div className="flex-1 px-3 py-2 text-sm rounded-xl border border-card-border text-mocha/60 bg-white">
+            <div className="flex-1 px-3 py-2 text-sm rounded-xl border border-card-border text-mocha bg-white">
               {t('chatInputPlaceholder')}
             </div>
             <div

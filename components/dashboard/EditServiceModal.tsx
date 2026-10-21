@@ -89,7 +89,7 @@ export default function EditServiceModal({ service, existingCategories, onClose 
           {/* Huomiot */}
           <div>
             <label htmlFor="edit-description" className="block text-xs font-medium text-mocha mb-1">
-              {t('notes')} <span className="text-mocha/60 font-normal">{tCommon('optional')}</span>
+              {t('notes')} <span className="text-mocha font-normal">{tCommon('optional')}</span>
             </label>
             <textarea
               id="edit-description"
@@ -97,7 +97,7 @@ export default function EditServiceModal({ service, existingCategories, onClose 
               rows={2}
               defaultValue={service.description ?? ''}
               placeholder={t('notesPlaceholder')}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha/50 resize-none
+              className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha resize-none
                          focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
             />
           </div>
@@ -140,7 +140,7 @@ export default function EditServiceModal({ service, existingCategories, onClose 
 
           {/* Virheilmoitus */}
           {virhe && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+            <p className="text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2">
               {virhe}
             </p>
           )}

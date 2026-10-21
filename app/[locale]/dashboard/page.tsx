@@ -88,11 +88,11 @@ export default async function DashboardPage() {
             href={`/${business.slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-lg font-semibold text-rose-deep hover:underline block mt-1 truncate"
+            className="text-lg font-semibold text-rose-ink hover:underline block mt-1 truncate"
           >
             /{business.slug}
           </a>
-          <p className="text-xs text-mocha/70 mt-1">{t('shareWithClients')}</p>
+          <p className="text-xs text-mocha mt-1">{t('shareWithClients')}</p>
         </div>
       </div>
 
@@ -102,7 +102,7 @@ export default async function DashboardPage() {
           <h2 className="font-serif text-lg font-medium text-chocolate">{t('nextBookings')}</h2>
           <Link
             href="/dashboard/bookings"
-            className="text-sm text-rose-deep hover:text-chocolate transition-colors"
+            className="text-sm text-rose-ink hover:text-chocolate transition-colors"
           >
             {t('allBookings')}
           </Link>
@@ -111,7 +111,7 @@ export default async function DashboardPage() {
         {!nextBookings || nextBookings.length === 0 ? (
           <div className="bg-white rounded-xl border border-card-border p-8 text-center shadow-sm">
             <p className="text-mocha text-sm">{t('noUpcoming')}</p>
-            <p className="text-mocha/70 text-xs mt-1">
+            <p className="text-mocha text-xs mt-1">
               {t('noUpcomingHint')}
             </p>
           </div>
@@ -167,7 +167,7 @@ function StatCard({
       <p className="text-3xl font-bold text-chocolate mt-1">{value}</p>
       <Link
         href={linkHref}
-        className="text-xs text-rose-deep hover:text-chocolate transition-colors mt-2 inline-block"
+        className="text-xs text-rose-ink hover:text-chocolate transition-colors mt-2 inline-block"
       >
         {linkLabel} →
       </Link>

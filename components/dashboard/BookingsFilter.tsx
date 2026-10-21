@@ -38,7 +38,7 @@ export default function BookingsFilter() {
       {/* Tekstihaku */}
       <div className="relative flex-1 min-w-48">
         <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mocha/60 pointer-events-none"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mocha pointer-events-none"
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
         >
           <path strokeLinecap="round" strokeLinejoin="round"
@@ -50,7 +50,7 @@ export default function BookingsFilter() {
           onChange={(e) => update('q', e.target.value)}
           placeholder={t('searchPlaceholder')}
           className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate
-                     placeholder-mocha/50 focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
+                     placeholder-mocha focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
         />
       </div>
 
@@ -64,7 +64,7 @@ export default function BookingsFilter() {
         <option value="">{tStatus('all')}</option>
         <option value="confirmed">{tStatus('confirmed')}</option>
         <option value="cancelled">{tStatus('cancelled')}</option>
-        <option value="completed">{tStatus('completed')}</option>
+        {/* "Toteutunut" piilotettu: mikään ei vielä aseta varausta completed-tilaan */}
       </select>
 
       {/* Tyhjennä-nappi */}
@@ -82,7 +82,7 @@ export default function BookingsFilter() {
       )}
 
       {isPending && (
-        <span className="text-xs text-mocha/70">{t('searching')}</span>
+        <span className="text-xs text-mocha">{t('searching')}</span>
       )}
     </div>
   )

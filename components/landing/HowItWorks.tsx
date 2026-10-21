@@ -8,11 +8,12 @@ const steps = [
 
 export default async function HowItWorks() {
   const t = await getTranslations('HowItWorks')
+  const tAnchors = await getTranslations('Anchors')
 
   return (
-    <section id="miten-toimii" className="py-24 md:py-32 px-6 bg-transparent">
+    <section id={tAnchors('howItWorks')} className="scroll-mt-16 py-14 md:py-16 px-6 bg-transparent">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 md:mb-12">
           <h2 className="font-serif text-3xl md:text-4xl font-semibold text-chocolate mb-4">
             {t('title')}
           </h2>
@@ -28,7 +29,7 @@ export default async function HowItWorks() {
               className="flex flex-col items-center md:items-start text-center md:text-left"
             >
               <div className="w-14 h-14 rounded-full bg-baby border border-rose-deep/30 flex items-center justify-center mb-6 shrink-0">
-                <span className="font-serif text-base font-semibold text-rose-deep">
+                <span className="font-serif text-base font-semibold text-rose-ink">
                   {step.number}
                 </span>
               </div>

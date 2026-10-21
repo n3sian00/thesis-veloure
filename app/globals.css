@@ -14,11 +14,14 @@
   --color-warm-white: #FDF8F5;
   --color-baby: #F7D9DF;
   --color-rose: #E7A6B0;
-  --color-rose-deep: #D67E8E;
+  --color-rose-deep: #D67E8E;  /* koristeet: reunat, pisteet — ei tekstille */
+  /* Tekstin ja täyttöjen korostusväri: ≥ 4,5:1 kaikkia vaaleita taustoja vasten (WCAG AA) */
+  --color-rose-ink: #9E4357;
   --color-peach: #F3C5A6;
   --color-cream: #FBEEE6;
   --color-chocolate: #33241E;
-  --color-mocha: #8A6A5C;
+  /* Toissijainen teksti: ≥ 4,5:1 myös landing-gradientin tummimmassa kohdassa (#F3C6A8) */
+  --color-mocha: #6B4E42;
 
   --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);

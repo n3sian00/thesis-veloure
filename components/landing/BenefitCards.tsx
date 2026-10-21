@@ -12,11 +12,12 @@ const benefits = [
 
 export default async function BenefitCards() {
   const t = await getTranslations('Benefits')
+  const tAnchors = await getTranslations('Anchors')
 
   return (
-    <section id="ominaisuudet" className="py-24 md:py-32 px-6 bg-transparent">
+    <section id={tAnchors('features')} className="scroll-mt-16 py-14 md:py-16 px-6 bg-transparent">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 md:mb-12">
           <h2 className="font-serif text-3xl md:text-4xl font-semibold text-chocolate mb-4">
             {t('title')}
           </h2>
@@ -31,7 +32,7 @@ export default async function BenefitCards() {
               key={b.id}
               className="bg-white rounded-2xl p-7 border border-card-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
             >
-              <b.icon className="w-7 h-7 mb-4 text-rose-deep" strokeWidth={1.75} aria-hidden />
+              <b.icon className="w-7 h-7 mb-4 text-rose-ink" strokeWidth={1.75} aria-hidden />
               <h3 className="font-serif text-lg font-semibold text-chocolate mb-2">
                 {t(`items.${b.id}.title`)}
               </h3>

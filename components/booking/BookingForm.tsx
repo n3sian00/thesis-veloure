@@ -96,7 +96,7 @@ export default function BookingForm({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t('namePlaceholder')}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate placeholder-mocha/50
+            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate placeholder-mocha
                        focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
           />
         </div>
@@ -113,7 +113,7 @@ export default function BookingForm({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t('emailPlaceholder')}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate placeholder-mocha/50
+            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate placeholder-mocha
                        focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
           />
         </div>
@@ -121,7 +121,7 @@ export default function BookingForm({
         {/* Puhelinnumero */}
         <div>
           <label htmlFor="bf-phone" className="block text-xs font-medium text-mocha mb-1">
-            {t('phone')} <span className="text-mocha/60">{tCommon('optional')}</span>
+            {t('phone')} <span className="text-mocha">{tCommon('optional')}</span>
           </label>
           <input
             id="bf-phone"
@@ -129,7 +129,7 @@ export default function BookingForm({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+358 40 123 4567"
-            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate placeholder-mocha/50
+            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate placeholder-mocha
                        focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
           />
         </div>
@@ -137,7 +137,7 @@ export default function BookingForm({
         {/* Lisätiedot */}
         <div>
           <label htmlFor="bf-notes" className="block text-xs font-medium text-mocha mb-1">
-            {t('notes')} <span className="text-mocha/60">{tCommon('optional')}</span>
+            {t('notes')} <span className="text-mocha">{tCommon('optional')}</span>
           </label>
           <textarea
             id="bf-notes"
@@ -145,14 +145,14 @@ export default function BookingForm({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder={t('notesPlaceholder')}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate placeholder-mocha/50 resize-none
+            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border bg-white text-chocolate placeholder-mocha resize-none
                        focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent"
           />
         </div>
 
         {/* Virheilmoitus */}
         {virhe && (
-          <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{virhe}</p>
+          <p className="text-xs text-red-700 bg-red-50 rounded-lg px-3 py-2">{virhe}</p>
         )}
 
         <button

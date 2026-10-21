@@ -38,7 +38,7 @@ export default function CategorySelect({ existingCategories, defaultValue, idPre
             type="text"
             autoFocus
             placeholder={t('newPlaceholder')}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha/50
+            className="w-full px-3 py-2 text-sm rounded-lg border border-card-border text-chocolate placeholder-mocha
                        focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
           />
           <button
@@ -56,7 +56,7 @@ export default function CategorySelect({ existingCategories, defaultValue, idPre
   return (
     <div>
       <label htmlFor={`${idPrefix}-category-select`} className="block text-xs font-medium text-mocha mb-1">
-        {t('label')} <span className="text-mocha/60">{tCommon('optional')}</span>
+        {t('label')} <span className="text-mocha">{tCommon('optional')}</span>
       </label>
       <select
         id={`${idPrefix}-category-select`}

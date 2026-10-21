@@ -5,9 +5,6 @@ import { useTranslations } from 'next-intl'
 import { updateBusinessAction } from '@/app/actions/business'
 import { routing } from '@/i18n/routing'
 
-// Teeman arvot — näyttönimet tulevat käännöksistä (Settings.themes.<arvo>)
-const TEEMAT = ['pink', 'lavender', 'rose', 'teal'] as const
-
 interface Props {
   business: {
     id: string
@@ -57,7 +54,7 @@ export default function BusinessSettingsForm({ business }: Props) {
           type="text"
           defaultValue={business.city ?? ''}
           placeholder={t('cityPlaceholder')}
-          className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha/50
+          className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha
                      focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
         />
       </div>
@@ -71,7 +68,7 @@ export default function BusinessSettingsForm({ business }: Props) {
           <span className="text-mocha text-sm">veloure.fi/</span>
           <span className="text-sm font-medium text-chocolate">{business.slug}</span>
         </div>
-        <p className="text-xs text-mocha/70 mt-1">{t('slugHint')}</p>
+        <p className="text-xs text-mocha mt-1">{t('slugHint')}</p>
       </div>
 
       {/* Peruutusaika */}
@@ -90,7 +87,7 @@ export default function BusinessSettingsForm({ business }: Props) {
           className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate
                      focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
         />
-        <p className="text-xs text-mocha/70 mt-1">
+        <p className="text-xs text-mocha mt-1">
           {t('cancellationHint')}
         </p>
       </div>
@@ -106,7 +103,7 @@ export default function BusinessSettingsForm({ business }: Props) {
           rows={3}
           defaultValue={business.general_notes ?? ''}
           placeholder={t('generalNotesPlaceholder')}
-          className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha/50 resize-none
+          className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha resize-none
                      focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
         />
       </div>
@@ -127,31 +124,16 @@ export default function BusinessSettingsForm({ business }: Props) {
             <option key={loc} value={loc}>{tLang(loc)}</option>
           ))}
         </select>
-        <p className="text-xs text-mocha/70 mt-1">{t('languageHint')}</p>
+        <p className="text-xs text-mocha mt-1">{t('languageHint')}</p>
       </div>
 
-      {/* Teema */}
-      <div>
-        <label htmlFor="theme" className="block text-sm font-medium text-chocolate mb-1">
-          {t('theme')}
-        </label>
-        <select
-          id="theme"
-          name="theme"
-          defaultValue={business.theme}
-          className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate bg-white
-                     focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent transition-shadow"
-        >
-          {TEEMAT.map((value) => (
-            <option key={value} value={value}>{t(`themes.${value}`)}</option>
-          ))}
-        </select>
-        <p className="text-xs text-mocha/70 mt-1">{t('themeHint')}</p>
-      </div>
+      {/* Chat-teema piilotettu: ChatWidget ei vielä käytä teemaa. Arvo säilytetään
+          piilokenttänä, ettei tallennus nollaa sitä. */}
+      <input type="hidden" name="theme" value={business.theme} />
 
       {/* Palaute */}
       {tulos === null && !lataa ? null : tulos ? (
-        <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-2.5">{tulos}</p>
+        <p className="text-sm text-red-700 bg-red-50 rounded-lg px-4 py-2.5">{tulos}</p>
       ) : null}
 
       <button

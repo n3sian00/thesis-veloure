@@ -5,18 +5,20 @@ export default async function CTABanner() {
   const t = await getTranslations('CTABanner')
 
   return (
-    <section className="py-24 md:py-32 px-6">
+    <section className="py-12 md:py-16 px-6">
       <div className="max-w-4xl mx-auto">
-        <div className="rounded-3xl bg-chocolate px-10 py-16 md:py-20 text-center">
-          <h2 className="font-serif text-3xl md:text-4xl font-semibold text-warm-white mb-4">
-            {t('title')}
-          </h2>
-          <p className="text-warm-white/60 text-lg mb-10 max-w-md mx-auto">
-            {t('subtitle')}
-          </p>
+        <div className="rounded-3xl border border-card-border bg-gradient-to-r from-warm-white/90 to-cream/90 shadow-sm px-6 py-8 md:px-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+          <div>
+            <h2 className="font-serif text-2xl font-semibold text-chocolate mb-1">
+              {t('title')}
+            </h2>
+            <p className="text-mocha">
+              {t('subtitle')}
+            </p>
+          </div>
           <Link
             href="/register"
-            className="inline-block px-10 py-3.5 text-sm font-medium text-chocolate bg-warm-white rounded-full hover:bg-baby transition-colors"
+            className="shrink-0 px-8 py-3.5 text-sm font-medium text-warm-white bg-chocolate rounded-full hover:bg-chocolate/85 transition-colors shadow-sm whitespace-nowrap"
           >
             {t('cta')}
           </Link>

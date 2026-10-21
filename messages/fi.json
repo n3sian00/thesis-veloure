@@ -1,9 +1,7 @@
 {
   "Navbar": {
     "features": "Ominaisuudet",
-    "pricing": "Hinnoittelu",
-    "contact": "Yhteystiedot",
-    "cta": "Aloita nyt"
+    "cta": "Aloita"
   },
   "LanguageSwitcher": {
     "label": "Valitse kieli"
@@ -112,14 +110,13 @@
     "chatInputPlaceholder": "Kirjoita viesti…"
   },
   "CTABanner": {
-    "title": "Aloita matkasi tänään",
-    "subtitle": "Kokeile 14 päivää ilmaiseksi. Ei luottokorttia.",
+    "title": "Kokeile Veloure 14 päivää ilmaiseksi",
+    "subtitle": "Ei luottokorttia — käyttöönotto vie minuutteja.",
     "cta": "Rekisteröidy nyt"
   },
   "Footer": {
     "copyright": "© 2026 Veloure. Kaikki oikeudet pidätetään.",
-    "login": "Kirjaudu",
-    "register": "Rekisteröidy"
+    "login": "Kirjaudu"
   },
   "Metadata": {
     "title": "Veloure — Älykäs asiakasohjauksesi",
@@ -437,5 +434,9 @@
     "reminderSubject": "Muistutus huomisesta varauksesta — {service} @ {business}",
     "reminderIntro": "muistutuksena: sinulla on varaus huomenna!",
     "dateTime": "{date} klo {time}"
+  },
+  "Anchors": {
+    "features": "ominaisuudet",
+    "howItWorks": "miten-toimii"
   }
 }

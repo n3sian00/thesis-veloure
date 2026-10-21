@@ -260,7 +260,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
         {/* Viikonpäivien otsikkorivi */}
         <div className="grid grid-cols-7 mb-1">
           {getDayNames(locale).map(d => (
-            <div key={d} className="text-center text-xs font-medium text-mocha/60 py-1 capitalize">
+            <div key={d} className="text-center text-xs font-medium text-mocha py-1 capitalize">
               {d}
             </div>
           ))}
@@ -286,11 +286,11 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                 onClick={() => handleDayClick(day)}
                 className={`relative flex flex-col items-center justify-center rounded-lg py-1.5 text-xs font-medium transition-colors ${
                   isSelected
-                    ? 'bg-rose-deep text-warm-white'
+                    ? 'bg-rose-ink text-warm-white'
                     : isToday
-                    ? 'bg-baby text-rose-deep ring-1 ring-rose'
+                    ? 'bg-baby text-rose-ink ring-1 ring-rose'
                     : isPast
-                    ? 'text-mocha/40 hover:bg-cream'
+                    ? 'text-mocha hover:bg-cream'
                     : 'text-chocolate hover:bg-cream'
                 }`}
               >
@@ -315,15 +315,15 @@ export default function CalendarView({ businessId: _businessId }: Props) {
         <div className="flex items-center gap-3 mt-4 pt-4 border-t border-card-border/60 flex-wrap">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-green-400" />
-            <span className="text-xs text-mocha/70">{t('legendWindows')}</span>
+            <span className="text-xs text-mocha">{t('legendWindows')}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-orange-400" />
-            <span className="text-xs text-mocha/70">{t('legendBlocked')}</span>
+            <span className="text-xs text-mocha">{t('legendBlocked')}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-rose-deep" />
-            <span className="text-xs text-mocha/70">{t('legendSelected')}</span>
+            <span className="w-2 h-2 rounded-full bg-rose-ink" />
+            <span className="text-xs text-mocha">{t('legendSelected')}</span>
           </div>
         </div>
       </div>
@@ -357,7 +357,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                   </h3>
 
                   {deleteError && (
-                    <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3">
+                    <p className="text-xs text-red-700 bg-red-50 rounded-lg px-3 py-2 mb-3">
                       {deleteError}
                     </p>
                   )}
@@ -377,14 +377,14 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                             {w.start_time} – {w.end_time}
                           </span>
                           {w.has_bookings ? (
-                            <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                            <span className="text-xs text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full">
                               {t('hasBookings')}
                             </span>
                           ) : (
                             <button
                               onClick={() => handleDelete(w.id)}
                               disabled={isPending}
-                              className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-0.5 rounded-lg
+                              className="text-xs text-red-700 hover:text-red-800 hover:bg-red-50 px-2 py-0.5 rounded-lg
                                          transition-colors disabled:opacity-50"
                             >
                               {t('delete')}
@@ -434,7 +434,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                   </h3>
 
                   {unblockError && (
-                    <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3">
+                    <p className="text-xs text-red-700 bg-red-50 rounded-lg px-3 py-2 mb-3">
                       {unblockError}
                     </p>
                   )}
@@ -452,7 +452,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                           <button
                             onClick={() => handleUnblock(b.id)}
                             disabled={isPending}
-                            className="text-xs text-orange-600 hover:text-orange-800 hover:bg-orange-100 px-2 py-0.5 rounded-lg
+                            className="text-xs text-orange-800 hover:text-orange-900 hover:bg-orange-100 px-2 py-0.5 rounded-lg
                                        transition-colors disabled:opacity-50"
                           >
                             {t('unblock')}
@@ -465,7 +465,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                   )}
 
                   {blockError && (
-                    <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3">
+                    <p className="text-xs text-red-700 bg-red-50 rounded-lg px-3 py-2 mb-3">
                       {blockError}
                     </p>
                   )}
@@ -503,7 +503,7 @@ export default function CalendarView({ businessId: _businessId }: Props) {
                   </h3>
 
                   {addError && (
-                    <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3">
+                    <p className="text-xs text-red-700 bg-red-50 rounded-lg px-3 py-2 mb-3">
                       {addError}
                     </p>
                   )}

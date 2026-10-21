@@ -71,7 +71,7 @@ export default function ServiceRow({ service, existingCategories }: Props) {
 
     <div
       className={`flex items-center justify-between px-5 py-4 ${
-        !service.active ? 'opacity-50' : ''
+        !service.active ? 'bg-cream/50' : ''
       }`}
     >
       {/* Palvelun tiedot */}
@@ -79,7 +79,7 @@ export default function ServiceRow({ service, existingCategories }: Props) {
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-chocolate truncate">{service.name}</p>
           {service.category && (
-            <span className="shrink-0 px-2 py-0.5 text-[10px] font-medium rounded-full bg-baby text-rose-deep">
+            <span className="shrink-0 px-2 py-0.5 text-[10px] font-medium rounded-full bg-baby text-rose-ink">
               {service.category}
             </span>
           )}
@@ -89,7 +89,7 @@ export default function ServiceRow({ service, existingCategories }: Props) {
           {formatPrice(Number(service.price), locale)}
         </p>
         {service.description && (
-          <p className="text-xs text-mocha/70 mt-1 truncate">{service.description}</p>
+          <p className="text-xs text-mocha mt-1 truncate">{service.description}</p>
         )}
       </div>
 
@@ -101,7 +101,7 @@ export default function ServiceRow({ service, existingCategories }: Props) {
           onClick={() => setEditOpen(true)}
           disabled={isPending}
           title={t('edit')}
-          className="p-1.5 rounded-lg text-mocha hover:text-rose-deep hover:bg-baby transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-1.5 rounded-lg text-mocha hover:text-rose-ink hover:bg-baby transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -115,7 +115,7 @@ export default function ServiceRow({ service, existingCategories }: Props) {
           title={service.active ? t('hide') : t('activate')}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
             service.active
-              ? 'bg-green-50 text-green-700 hover:bg-green-100'
+              ? 'bg-green-50 text-green-800 hover:bg-green-100'
               : 'bg-cream text-mocha hover:bg-baby'
           }`}
         >
@@ -131,7 +131,7 @@ export default function ServiceRow({ service, existingCategories }: Props) {
           onClick={handleDelete}
           disabled={isPending}
           title={t('delete')}
-          className="p-1.5 rounded-lg text-mocha hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-1.5 rounded-lg text-mocha hover:text-red-800 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {deletePending ? (
             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -148,7 +148,7 @@ export default function ServiceRow({ service, existingCategories }: Props) {
     </div>
 
     {deleteError && (
-      <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mx-5 mb-4">
+      <p className="text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2 mx-5 mb-4">
         {deleteError}
       </p>
     )}

@@ -44,7 +44,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 required
                 placeholder={t('emailPlaceholder')}
-                className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha/50
+                className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha
                            focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent
                            transition-shadow"
               />
@@ -65,7 +65,7 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 required
                 placeholder="••••••••"
-                className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha/50
+                className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha
                            focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent
                            transition-shadow"
               />
@@ -73,7 +73,7 @@ export default function LoginPage() {
 
             {/* Virheilmoitus */}
             {virhe && (
-              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-2.5">
+              <p className="text-sm text-red-700 bg-red-50 rounded-lg px-4 py-2.5">
                 {virhe}
               </p>
             )}
@@ -97,7 +97,7 @@ export default function LoginPage() {
             {t('noAccount')}{' '}
             <Link
               href="/register"
-              className="text-rose-deep hover:text-chocolate font-medium transition-colors"
+              className="text-rose-ink hover:text-chocolate font-medium transition-colors"
             >
               {t('createAccount')}
             </Link>

@@ -4,6 +4,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default async function Navbar() {
   const t = await getTranslations('Navbar')
+  const tAnchors = await getTranslations('Anchors')
 
   return (
     <header className="sticky top-0 z-50 bg-warm-white/90 backdrop-blur-sm border-b border-card-border">
@@ -15,28 +16,14 @@ export default async function Navbar() {
           Veloure
         </Link>
 
-        <nav className="hidden md:flex items-center gap-8">
+        <div className="flex items-center gap-3 sm:gap-6 shrink-0">
+          {/* Sivunsisäinen ankkuri — tunniste tulee käännöksistä, jotta URL vastaa kieltä */}
           <a
-            href="#ominaisuudet"
-            className="text-sm text-mocha hover:text-chocolate transition-colors"
+            href={`#${tAnchors('features')}`}
+            className="hidden sm:inline text-sm text-mocha hover:text-chocolate transition-colors"
           >
             {t('features')}
           </a>
-          <a
-            href="#hinnoittelu"
-            className="text-sm text-mocha hover:text-chocolate transition-colors"
-          >
-            {t('pricing')}
-          </a>
-          <a
-            href="#yhteystiedot"
-            className="text-sm text-mocha hover:text-chocolate transition-colors"
-          >
-            {t('contact')}
-          </a>
-        </nav>
-
-        <div className="flex items-center gap-3 shrink-0">
           <LanguageSwitcher />
           <Link
             href="/register"

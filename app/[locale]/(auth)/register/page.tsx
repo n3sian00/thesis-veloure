@@ -44,13 +44,13 @@ export default function RegisterPage() {
                 autoComplete="organization"
                 required
                 placeholder={t('businessNamePlaceholder')}
-                className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha/50
+                className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha
                            focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent
                            transition-shadow"
               />
-              <p className="text-xs text-mocha/70 mt-1">
+              <p className="text-xs text-mocha mt-1">
                 {t('slugHint')}{' '}
-                <span className="text-rose-deep">veloure.fi/studio-lumiere</span>
+                <span className="text-rose-ink">veloure.fi/studio-lumiere</span>
               </p>
             </div>
 
@@ -69,7 +69,7 @@ export default function RegisterPage() {
                 autoComplete="email"
                 required
                 placeholder={t('emailPlaceholder')}
-                className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha/50
+                className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha
                            focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent
                            transition-shadow"
               />
@@ -91,16 +91,16 @@ export default function RegisterPage() {
                 required
                 minLength={8}
                 placeholder="••••••••"
-                className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha/50
+                className="w-full px-4 py-2.5 rounded-lg border border-card-border text-chocolate placeholder-mocha
                            focus:outline-none focus:ring-2 focus:ring-rose focus:border-transparent
                            transition-shadow"
               />
-              <p className="text-xs text-mocha/70 mt-1">{t('passwordHint')}</p>
+              <p className="text-xs text-mocha mt-1">{t('passwordHint')}</p>
             </div>
 
             {/* Virheilmoitus */}
             {virhe && (
-              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-2.5">
+              <p className="text-sm text-red-700 bg-red-50 rounded-lg px-4 py-2.5">
                 {virhe}
               </p>
             )}
@@ -124,7 +124,7 @@ export default function RegisterPage() {
             {t('haveAccount')}{' '}
             <Link
               href="/login"
-              className="text-rose-deep hover:text-chocolate font-medium transition-colors"
+              className="text-rose-ink hover:text-chocolate font-medium transition-colors"
             >
               {t('login')}
             </Link>

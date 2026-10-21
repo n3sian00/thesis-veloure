@@ -40,7 +40,7 @@ export default function BookingActions({
       <button
         type="button"
         onClick={() => setModal('reschedule')}
-        className="text-xs text-mocha hover:text-rose-deep hover:bg-baby
+        className="text-xs text-mocha hover:text-rose-ink hover:bg-baby
                    px-2.5 py-1 rounded-lg transition-colors border border-card-border
                    hover:border-rose/40 whitespace-nowrap"
       >
@@ -49,7 +49,7 @@ export default function BookingActions({
       <button
         type="button"
         onClick={() => setModal('edit')}
-        className="text-xs text-mocha hover:text-rose-deep hover:bg-baby
+        className="text-xs text-mocha hover:text-rose-ink hover:bg-baby
                    px-2.5 py-1 rounded-lg transition-colors border border-card-border
                    hover:border-rose/40 whitespace-nowrap"
       >
@@ -179,7 +179,7 @@ function RescheduleModal({
             </div>
 
             {virhe && (
-              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{virhe}</p>
+              <p className="text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2">{virhe}</p>
             )}
 
             <div className="flex gap-2 pt-1">
@@ -310,7 +310,7 @@ function EditBookingModal({
           {/* Puhelinnumero */}
           <div>
             <label htmlFor="booking-phone" className="block text-xs font-medium text-mocha mb-1">
-              {t('phone')} <span className="text-mocha/60 font-normal">{tCommon('optional')}</span>
+              {t('phone')} <span className="text-mocha font-normal">{tCommon('optional')}</span>
             </label>
             <input
               id="booking-phone"
@@ -325,7 +325,7 @@ function EditBookingModal({
           {/* Lisätiedot */}
           <div>
             <label htmlFor="booking-notes" className="block text-xs font-medium text-mocha mb-1">
-              {t('notes')} <span className="text-mocha/60 font-normal">{tCommon('optional')}</span>
+              {t('notes')} <span className="text-mocha font-normal">{tCommon('optional')}</span>
             </label>
             <textarea
               id="booking-notes"
@@ -339,7 +339,7 @@ function EditBookingModal({
 
           {/* Virheilmoitus */}
           {virhe && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{virhe}</p>
+            <p className="text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2">{virhe}</p>
           )}
 
           {/* Toimintopainikkeet */}

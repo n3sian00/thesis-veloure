@@ -10,8 +10,8 @@ import { Suspense } from 'react'
 
 // Värikoodi varauksen tilalle
 const STATUS_STYLES: Record<string, string> = {
-  confirmed: 'bg-green-50 text-green-700',
-  cancelled: 'bg-red-50 text-red-600',
+  confirmed: 'bg-green-50 text-green-800',
+  cancelled: 'bg-red-50 text-red-700',
   completed: 'bg-cream text-mocha',
 }
 
@@ -196,7 +196,7 @@ async function WaitlistSection({ waitlist }: { waitlist: WaitlistEntry[] }) {
                     <form action={async () => { await removeWaitlistAction(entry.id) }}>
                       <button
                         type="submit"
-                        className="text-xs text-mocha hover:text-red-600 hover:bg-red-50
+                        className="text-xs text-mocha hover:text-red-800 hover:bg-red-50
                                    px-2.5 py-1 rounded-lg transition-colors border border-card-border
                                    hover:border-red-200 whitespace-nowrap"
                       >
@@ -249,7 +249,7 @@ async function BookingSection({
 
   return (
     <div>
-      <h2 className={`text-sm font-medium mb-2 ${dim ? 'text-mocha/60' : 'text-mocha'}`}>
+      <h2 className="text-sm font-medium mb-2 text-mocha">
         {otsikko}
       </h2>
 
@@ -276,7 +276,7 @@ async function BookingSection({
             return (
               <div
                 key={booking.id}
-                className={`px-5 py-4 ${dim ? 'opacity-60' : ''}`}
+                className={`px-5 py-4 ${dim ? 'bg-cream/50' : ''}`}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
@@ -293,7 +293,7 @@ async function BookingSection({
                       {booking.customer_phone && ` · ${booking.customer_phone}`}
                     </p>
                     {booking.customer_notes && (
-                      <p className="text-xs text-mocha/70 mt-1">
+                      <p className="text-xs text-mocha mt-1">
                         {booking.customer_notes}
                       </p>
                     )}
@@ -322,7 +322,7 @@ async function BookingSection({
                           <input type="hidden" name="booking_id" value={booking.id} />
                           <button
                             type="submit"
-                            className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50
+                            className="text-xs text-red-700 hover:text-red-800 hover:bg-red-50
                                        px-2.5 py-1 rounded-lg transition-colors border border-red-200
                                        hover:border-red-300 whitespace-nowrap"
                           >
